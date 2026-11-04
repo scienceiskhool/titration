@@ -1,0 +1,1757 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Titration Lab</title>
+<link rel="icon" type="image/png" href="favicon.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700;800&family=Press+Start+2P&display=swap">
+<style>
+/* Science is Khool "Arcade Punch" — same look as Microscope Lab. Light only, by brand choice. */
+:root {
+  --orange: #FF8243; --pink: #FFC0CB; --yellow: #FCE883; --teal: #069494; --teal-ink: #057A7A;
+  --ink: #1d2626; --muted: #5a6b6b; --line: #1d2626; --paper: #ffffff; --wash: #f3fbfa;
+  --good: #1f9d55; --goodbg: #d9f5e4; --bad: #d64545; --badbg: #ffe1e1;
+  --font: "Open Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { margin: 0; background: var(--paper); color: var(--ink); }
+body { font-family: var(--font); font-size: 16px; line-height: 1.45; -webkit-tap-highlight-color: transparent; display: flex; flex-direction: column; min-height: 100vh; min-height: 100dvh; }
+.wrap { flex: 1; width: 100%; max-width: 1140px; margin: 0 auto; padding-block: 16px 48px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+h1, h2, h3 { text-wrap: balance; margin: 0; line-height: 1.15; }
+button, input, select { font: inherit; }
+sub, sup { line-height: 0; }
+.btn { border: 2.5px solid var(--line); border-radius: 12px; padding: 10px 18px; font-weight: 800; background: var(--yellow); color: var(--ink);
+  box-shadow: 0 4px 0 var(--line); cursor: pointer; transition: transform .08s, box-shadow .08s; touch-action: manipulation; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+.btn:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--line); }
+.btn:focus-visible, .chip:focus-visible, input:focus-visible, .app:focus-visible { outline: 3px solid var(--orange); outline-offset: 2px; }
+.btn.teal { background: var(--teal); color: #fff; }
+.btn.orange { background: var(--orange); }
+.btn.pink { background: var(--pink); }
+.btn.ghost { background: var(--paper); }
+.btn.sm { padding: 7px 12px; font-size: .92rem; border-radius: 10px; }
+.btn:disabled { opacity: .5; cursor: default; transform: none; box-shadow: 0 4px 0 var(--line); }
+.card { border: 2.5px solid var(--line); border-radius: 18px; background: var(--paper); box-shadow: 0 6px 0 var(--line); min-width: 0; }
+
+/* scoreboard */
+.score { background: var(--teal); color: #fff; border: 2.5px solid var(--line); border-radius: 16px; box-shadow: 0 5px 0 var(--line);
+  display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; padding: 10px 16px; margin-bottom: 16px; }
+.score h2 { font-size: 1.1rem; font-weight: 800; flex: 1 1 200px; min-width: 0; }
+.pill { background: #fff; color: var(--ink); border: 2px solid var(--line); border-radius: 99px; padding: 2px 12px; font-weight: 800; font-size: .85rem; white-space: nowrap; }
+.pill.timer { font-variant-numeric: tabular-nums; background: var(--yellow); }
+.score .btn { padding: 5px 12px; font-size: .85rem; box-shadow: 0 3px 0 var(--line); }
+
+/* coach */
+.coach { display: flex; gap: 10px; align-items: flex-start; }
+.coach img { width: 46px; height: 46px; border-radius: 50%; border: 2.5px solid var(--line); background: var(--yellow); object-fit: cover; flex: none; }
+.coach .bubble { position: relative; flex: 1; background: var(--wash); border: 2.5px solid var(--line); border-radius: 14px; padding: 9px 13px; font-weight: 600; min-height: 46px; }
+.coach .bubble.warn { background: var(--orange); animation: shake .35s; }
+.coach .bubble.good { background: var(--goodbg); }
+@keyframes shake { 0%,100% { transform: translateX(0) } 25% { transform: translateX(-6px) } 75% { transform: translateX(6px) } }
+@media (prefers-reduced-motion: reduce) { .coach .bubble.warn { animation: none; } }
+
+.prompt { font-size: 1.2rem; font-weight: 800; }
+.prompt b { background: var(--yellow); border: 2px solid var(--line); border-radius: 10px; padding: 0 8px; white-space: nowrap; }
+.bar { height: 14px; border: 2px solid var(--line); border-radius: 99px; overflow: hidden; background: var(--wash); }
+.bar i { display: block; height: 100%; background: var(--orange); width: 0; transition: width .3s; }
+.fn { border: 2px dashed var(--line); border-radius: 12px; padding: 10px 12px; background: var(--yellow); }
+.fn h3 { font-size: 1rem; margin-bottom: 2px; }
+.fn p { margin: 0; }
+.found { display: flex; flex-wrap: wrap; gap: 6px; }
+.found span { font-size: .8rem; font-weight: 700; border: 2px solid var(--line); border-radius: 99px; padding: 1px 9px; background: var(--goodbg); }
+.found span.miss { background: var(--badbg); }
+.howto { margin: 0; color: var(--muted); font-size: .95rem; }
+
+/* 1. apparatus */
+.app-grid { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 18px; align-items: start; }
+@media (max-width: 820px) { .app-grid { grid-template-columns: 1fr; } .app-grid .app-panel { order: -1; } }
+.apps { padding: 14px; display: grid; grid-template-columns: repeat(auto-fill, minmax(112px, 1fr)); gap: 10px; }
+.app { border: 2.5px solid var(--line); border-radius: 14px; background: #fff; box-shadow: 0 4px 0 var(--line); padding: 8px 4px 6px; cursor: pointer; display: grid; place-items: center; gap: 4px; touch-action: manipulation; }
+.app:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--line); }
+.app svg { height: 112px; width: 100%; display: block; }
+.app .nm { font-size: .78rem; font-weight: 800; min-height: 1.1em; text-align: center; line-height: 1.15; }
+.app.ok { background: var(--goodbg); }
+.app.miss { background: var(--badbg); }
+.app.flash-bad { animation: shake .35s; background: var(--badbg); }
+.app-panel { padding: 16px; display: grid; gap: 14px; }
+
+/* briefing */
+.brief { padding: 20px; display: grid; gap: 14px; max-width: 900px; }
+.brief .aim { font-size: 1.15rem; font-weight: 700; margin: 0; }
+.brief .aim b { background: var(--yellow); border: 2px solid var(--line); border-radius: 8px; padding: 0 6px; }
+.bgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+@media (max-width: 640px) { .bgrid { grid-template-columns: 1fr; } }
+.bbox { border: 2.5px solid var(--line); border-radius: 14px; padding: 12px 14px; display: flex; gap: 12px; align-items: center; background: var(--wash); }
+.bbox svg { width: 64px; height: 96px; flex: none; }
+.bbox h3 { font-size: .8rem; letter-spacing: .07em; text-transform: uppercase; color: var(--teal-ink); margin-bottom: 4px; }
+.bbox p { margin: 0; font-weight: 600; }
+.bsteps { margin: 0; padding-left: 22px; display: grid; gap: 4px; font-weight: 600; }
+.aimpill { font-size: .88rem; border: 2px dashed var(--line); border-radius: 10px; padding: 6px 10px; background: #fffbe6; margin: 0; }
+/* 2. bench */
+.bench { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); grid-template-areas: "scene main" "scene extra"; gap: 18px; align-items: start; }
+.b-main { grid-area: main; padding: 16px; display: grid; gap: 12px; }
+.b-extra { grid-area: extra; padding: 14px 16px; display: grid; gap: 12px; }
+.scene-card { grid-area: scene; padding: 8px; position: sticky; top: 8px; }
+@media (max-width: 860px) { .bench { grid-template-columns: 1fr; grid-template-areas: "main" "scene" "extra"; } .scene-card { position: static; } }
+.scene { width: 100%; height: auto; max-height: 88vh; display: block; touch-action: none; user-select: none; -webkit-user-select: none; }
+.scene text { font-family: var(--font); pointer-events: none; }
+.scene [data-item] { cursor: grab; }
+.scene [data-item].sel > .hit { stroke: var(--orange); stroke-width: 4; stroke-dasharray: 6 4; }
+.scene .zone { fill: rgba(252,232,131,.0); stroke: none; }
+.scene .zone.show { fill: rgba(252,232,131,.35); stroke: var(--orange); stroke-width: 3; stroke-dasharray: 7 5; animation: pulse 1.4s infinite; }
+@keyframes pulse { 50% { fill: rgba(252,232,131,.65); } }
+.scene .dragging { opacity: .85; filter: drop-shadow(0 6px 4px rgba(0,0,0,.25)); }
+.scene .drop { opacity: 0; pointer-events: none; }
+#stream, #magStream, #flash { pointer-events: none; }
+.scene .drop.fall { animation: fall .22s linear; }
+@keyframes fall { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 1; transform: translateY(22px); } }
+.scene .slosh { animation: slosh .7s ease-in-out; }
+@keyframes slosh { 20% { transform: translateX(-6px); } 50% { transform: translateX(6px); } 80% { transform: translateX(-4px); } }
+.scene [data-handle]:focus { outline: none; }
+.scene [data-handle]:focus-visible rect { stroke: #FF8243; }
+.zoom.fz { width: 190px; }
+#fz [data-valve].on .vbody { fill: #FF8243; }
+#fz { touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+.opts { display: grid; gap: 8px; }
+.opt { text-align: left; border: 2.5px solid var(--line); border-radius: 12px; padding: 10px 14px; background: #fff; font-weight: 700; cursor: pointer; box-shadow: 0 3px 0 var(--line); color: var(--ink); touch-action: manipulation; }
+.opt:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--line); }
+.opt.no { background: var(--badbg); opacity: .75; cursor: default; }
+.opt.yes { background: var(--goodbg); }
+.q { font-weight: 800; margin: 0; }
+.why { margin: 0; font-size: .92rem; border-left: 4px solid var(--orange); padding: 4px 10px; background: #fff5ee; border-radius: 0 8px 8px 0; }
+.steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 3px; counter-reset: s; }
+.steps li { counter-increment: s; display: flex; gap: 8px; align-items: flex-start; font-size: .88rem; padding: 3px 6px; border-radius: 8px; color: var(--muted); }
+.steps li::before { content: counter(s); flex: none; width: 21px; height: 21px; border-radius: 50%; border: 2px solid var(--line); display: grid; place-items: center; font-size: .72rem; font-weight: 800; background: #fff; color: var(--ink); }
+.steps li.cur { background: var(--yellow); color: var(--ink); font-weight: 700; }
+.steps li.ok { color: var(--ink); }
+.steps li.ok::before { content: "✓"; background: var(--good); color: #fff; }
+.small-h { font-size: .78rem; font-weight: 800; letter-spacing: .07em; text-transform: uppercase; color: var(--teal-ink); margin: 0; }
+.tap-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.tap-row .btn { padding: 14px 8px; font-size: 1rem; }
+.hold { background: var(--teal); color: #fff; }
+.hold.on { background: var(--orange); color: var(--ink); transform: translateY(3px); box-shadow: 0 1px 0 var(--line); }
+.zoomrow { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; }
+.zoom { width: 150px; flex: none; border: 2.5px solid var(--line); border-radius: 14px; background: #fff; overflow: hidden; }
+.zoom svg { display: block; width: 100%; height: auto; }
+.zoom text { font-family: var(--font); }
+.readin { display: grid; gap: 8px; flex: 1; min-width: 170px; }
+.numin { display: flex; align-items: center; gap: 8px; font-weight: 700; }
+.numin input { width: 110px; border: 2.5px solid var(--line); border-radius: 10px; padding: 9px 10px; font-size: 1.05rem; font-weight: 800; text-align: center; font-variant-numeric: tabular-nums; }
+
+/* tables */
+.ttable { width: 100%; border-collapse: collapse; font-size: .9rem; font-variant-numeric: tabular-nums; }
+.ttable th, .ttable td { border: 2px solid var(--line); padding: 5px 6px; text-align: center; }
+.ttable th { background: var(--yellow); font-weight: 800; }
+.ttable th.rowh { text-align: left; background: var(--wash); font-weight: 700; width: 38%; }
+.ttable td.cur { background: #fff5ee; outline: 3px solid var(--orange); outline-offset: -3px; }
+.ttable input[type=text] { width: 100%; max-width: 86px; border: 2px solid var(--line); border-radius: 8px; padding: 6px 4px; text-align: center; font-weight: 800; font-size: .95rem; }
+.ttable input[type=checkbox] { width: 22px; height: 22px; accent-color: var(--teal); }
+.ttable td.ok { background: var(--goodbg); } .ttable td.bad { background: var(--badbg); }
+.tscroll { overflow-x: auto; }
+.avg { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-weight: 700; }
+.avg input { width: 100px; border: 2.5px solid var(--line); border-radius: 10px; padding: 8px; text-align: center; font-weight: 800; font-size: 1rem; }
+.avg input.ok { background: var(--goodbg); } .avg input.bad { background: var(--badbg); }
+.solo { padding: 18px; display: grid; gap: 14px; max-width: 860px; }
+.fbk { margin: 0; font-weight: 700; }
+.fbk.ok { color: var(--good); } .fbk.bad { color: var(--bad); }
+
+/* calc */
+.given { border: 2px dashed var(--line); border-radius: 12px; padding: 10px 14px; background: var(--wash); display: grid; gap: 4px; }
+.eq { font-weight: 800; font-size: 1.05rem; text-align: center; background: var(--yellow); border: 2px solid var(--line); border-radius: 10px; padding: 6px 10px; }
+.crow { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px 12px; align-items: center; border: 2px solid var(--line); border-radius: 12px; padding: 10px 12px; background: #fff; }
+.crow label { font-weight: 700; }
+.crow .in { display: flex; align-items: center; gap: 6px; font-weight: 700; }
+.crow input { width: 120px; border: 2.5px solid var(--line); border-radius: 10px; padding: 8px; text-align: center; font-weight: 800; font-size: 1rem; }
+.crow .msg { grid-column: 1 / -1; font-size: .9rem; font-weight: 700; margin: 0; }
+.crow .msg:empty { display: none; }
+.crow.ok { background: var(--goodbg); } .crow.ok .msg { color: var(--good); }
+.crow.bad { background: var(--badbg); } .crow.bad .msg { color: #a52f2f; }
+.crow.shown { background: #eef1f1; }
+@media (max-width: 520px) { .crow { grid-template-columns: 1fr; } }
+.hintbox { font-size: .92rem; background: #fff5ee; border: 2px solid var(--line); border-radius: 10px; padding: 8px 12px; }
+
+/* indicators */
+.curve { width: 100%; height: auto; display: block; max-width: 620px; margin: 0 auto; }
+.curve text { font-family: var(--font); }
+.ind-grid { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: 18px; align-items: start; }
+@media (max-width: 820px) { .ind-grid { grid-template-columns: 1fr; } }
+.ikey { display: grid; gap: 6px; font-size: .9rem; }
+.ikey div { display: flex; align-items: center; gap: 8px; }
+.ikey i { width: 34px; height: 14px; border: 2px solid var(--line); border-radius: 4px; flex: none; }
+
+/* top bar + footer */
+.topbar { display: flex; align-items: center; gap: 10px; padding-block: 10px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); border-bottom: 2px solid #E4E8E9; background: #fff; }
+.topbar .brand { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; text-decoration: none; color: var(--ink); }
+.topbar .brand img { width: 38px; height: 38px; border-radius: 50%; border: 2.5px solid var(--ink); background: var(--yellow); object-fit: cover; flex: none; }
+.topbar .brand b { font-weight: 800; font-size: 1.05rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
+.topbar .brand small { display: block; font-size: .72rem; color: var(--muted); font-weight: 600; line-height: 1.2; }
+footer { text-align: center; color: var(--muted); font-size: .82rem; padding: 14px 16px 20px; }
+footer a { color: var(--teal-ink); font-weight: 700; }
+
+/* start screen */
+.start2 { display: grid; gap: 22px; grid-template-columns: 1fr; align-items: start; padding-block: 8px 20px; }
+@media (min-width: 820px) { .start2 { grid-template-columns: 1.05fr 1fr; gap: 28px; } }
+.start2:not([hidden]) { display: grid; }
+.pcard { background: #fff; border: 3px solid var(--ink); border-radius: 22px; box-shadow: 6px 6px 0 var(--ink); min-width: 0; }
+.hero2 { background: var(--teal); color: #fff; padding: 22px; display: flex; flex-direction: column; gap: 14px; overflow: hidden; }
+.pill2 { align-self: flex-start; font-size: .7rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; border: 2px solid var(--ink); border-radius: 99px; padding: 2px 10px; background: #fff; color: var(--ink); }
+.title-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.hero2 h1 { margin: 6px 0 0; font-size: clamp(2rem, 7vw, 3rem); line-height: 1.05; font-weight: 800; letter-spacing: -.01em; text-wrap: balance; }
+.hero2 h1 em { font-style: normal; background: var(--yellow); color: var(--ink); border: 3px solid var(--ink); border-radius: 14px; padding: 0 10px; display: inline-block; transform: rotate(-2deg); }
+.hero-art { width: 96px; flex: none; margin: -14px 0 -18px; transform: rotate(5deg); pointer-events: none; }
+.hero-art svg { width: 100%; height: auto; display: block; filter: drop-shadow(3px 3px 0 rgba(0,0,0,.18)); }
+@media (max-width: 480px) { .hero-art { width: 70px; } }
+.hero2 > p { margin: 0; max-width: 44ch; font-weight: 600; }
+.demo2 { background: #fff; color: var(--ink); border: 3px solid var(--ink); border-radius: 16px; padding: 12px 14px; display: grid; gap: 6px; }
+.demo2 small { font-size: .7rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--teal-ink); }
+.howlist { margin: 0; padding: 0; list-style: none; counter-reset: h; display: grid; gap: 6px; }
+.howlist li { counter-increment: h; display: flex; gap: 10px; align-items: flex-start; font-size: .95rem; font-weight: 600; }
+.howlist li::before { content: counter(h); flex: none; width: 24px; height: 24px; border-radius: 50%; background: var(--yellow); border: 2px solid var(--ink); display: grid; place-items: center; font-size: .78rem; font-weight: 800; }
+.modes2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.mode2 { padding: 12px; border: 3px solid var(--ink); border-radius: 16px; background: #FEF8D9; color: var(--ink); }
+.mode2 b { display: block; font-weight: 800; }
+.mode2.dark { background: #0D0B1A; color: #fff; }
+.mode2.dark b { font-family: "Press Start 2P", ui-monospace, monospace; font-size: .72rem; color: var(--yellow); line-height: 1.6; }
+.mode2 span { font-size: .85rem; display: block; line-height: 1.4; margin-top: 4px; }
+.form2 { padding: 20px; display: flex; flex-direction: column; gap: 14px; }
+.form2 h2 { margin: 0; font-size: 1.25rem; font-weight: 800; }
+.fields { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.fields .f-name { grid-column: 1 / -1; }
+label.f { display: grid; gap: 4px; font-weight: 700; font-size: .9rem; min-width: 0; }
+label.f input, label.f select { font-size: 16px; padding: 12px; border: 2.5px solid var(--ink); border-radius: 12px; background: #fff; color: var(--ink); width: 100%; min-width: 0; font: inherit; }
+label.f input:focus, label.f select:focus { outline: 3px solid var(--yellow); outline-offset: 1px; }
+.err { color: var(--bad); font-weight: 700; margin: -6px 0 0; font-size: .9rem; }
+.err:empty { display: none; }
+.grp2 { display: grid; gap: 6px; }
+.grp2 > span { font-weight: 700; font-size: .9rem; }
+.go2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.sbtn { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; border: 3px solid var(--ink); border-radius: 16px; padding: 12px 14px; font-weight: 800; font-size: 1.05rem; text-transform: uppercase; letter-spacing: .03em;
+  background: var(--orange); color: var(--ink); box-shadow: 0 5px 0 var(--ink); cursor: pointer; transition: transform .08s, box-shadow .08s; touch-action: manipulation; }
+.sbtn small { font-size: .74rem; font-weight: 700; text-transform: none; letter-spacing: 0; opacity: .85; }
+.sbtn:active:not(:disabled) { transform: translateY(4px); box-shadow: 0 1px 0 var(--ink); }
+.sbtn:disabled { opacity: .5; cursor: not-allowed; }
+.sbtn.tealb { background: var(--teal); color: #fff; }
+.sbtn.arcade { background: #0D0B1A; color: var(--yellow); font-family: "Press Start 2P", ui-monospace, monospace; font-size: .74rem; line-height: 1.6; text-transform: none; }
+.sbtn.arcade small { font-family: var(--font); color: #fff; font-size: .74rem; }
+.sbtn.arcade:disabled { opacity: .55; }
+.lock { color: var(--muted); font-weight: 700; font-size: .92rem; margin: 0; }
+.best2 { display: flex; justify-content: space-between; gap: 10px; font-size: .9rem; color: var(--muted); font-weight: 700; }
+.best2 b { color: var(--ink); text-align: right; }
+@media (max-width: 420px) { .modes2, .go2 { grid-template-columns: 1fr; } }
+
+/* badge */
+.badges { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; }
+.badgecard { display: flex; gap: 14px; align-items: center; padding: 14px 16px; border: 2.5px solid var(--line); border-radius: 18px; box-shadow: 0 6px 0 var(--line);
+  background: repeating-linear-gradient(135deg, var(--yellow) 0 14px, #fdf1a8 14px 28px); min-width: 0; }
+.badgecard svg { width: 78px; height: 92px; flex: none; }
+.badgecard .bt { font-weight: 800; font-size: 1.05rem; line-height: 1.2; }
+.badgecard .bs { font-size: .78rem; font-weight: 800; letter-spacing: .07em; text-transform: uppercase; color: var(--teal-ink); }
+.badgecard .who { font-weight: 700; margin-top: 4px; overflow-wrap: anywhere; }
+.badgecard .when { font-size: .82rem; color: var(--muted); font-weight: 600; }
+.badgecard .best { font-size: .82rem; font-weight: 800; margin-top: 2px; }
+
+/* sound + confetti */
+.icon-btn { width: 40px; height: 40px; border-radius: 12px; border: 2.5px solid var(--line); background: #fff; color: var(--ink); display: grid; place-items: center; box-shadow: 0 3px 0 var(--line); padding: 0; flex: none; cursor: pointer; }
+.icon-btn:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--line); }
+.icon-btn svg { width: 20px; height: 20px; }
+.icon-btn.off { opacity: .45; }
+canvas#confetti { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 50; }
+
+/* results */
+.results { padding: 20px; display: grid; gap: 14px; max-width: 760px; }
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+.stat { border: 2.5px solid var(--line); border-radius: 14px; padding: 10px 12px; background: var(--wash); }
+.stat b { display: block; font-size: 1.45rem; line-height: 1.15; }
+.stat span { font-size: .85rem; color: var(--muted); font-weight: 700; }
+.actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.send { border: 2px solid var(--line); border-radius: 12px; padding: 8px 12px; background: var(--wash); font-weight: 700; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.send.err { background: var(--badbg); }
+.mlist { margin: 0; padding-left: 20px; }
+</style>
+</head>
+<body>
+<audio id="music" loop preload="none"></audio>
+<canvas id="confetti" hidden></canvas>
+<header class="topbar">
+  <a class="brand" href="https://scienceiskhool.github.io/scienceiskhool/" target="_blank" rel="noopener">
+    <img src="https://scienceiskhool.github.io/scienceiskhool/assets/img/head.png" alt="" onerror="this.style.visibility='hidden'">
+    <span><b>Titration Lab</b><small>Science is Khool · Acids, Bases &amp; Salts</small></span>
+  </a>
+  <button class="icon-btn" id="btnMusic" type="button" aria-label="Music on" title="Music (challenge mode)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></button>
+  <button class="icon-btn" id="btnSound" type="button" aria-label="Sound effects on" title="Sound effects"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H2v6h4l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M19 5a10 10 0 0 1 0 14"/></svg></button>
+</header>
+<div class="wrap">
+
+  <!-- ============ START ============ -->
+  <section id="scrStart" class="start2">
+    <div class="pcard hero2">
+      <span class="pill2">Combined Science · Pure Chemistry · Acid–alkali titration</span>
+      <div class="title-row">
+        <h1>Titration <em>Lab</em></h1>
+        <div class="hero-art" id="heroArt" aria-hidden="true"></div>
+      </div>
+      <p>Find out the concentration of a sodium hydroxide solution, the way real chemists do. Earn your Pre-Lab badge to unlock the timed challenge.</p>
+      <div class="demo2">
+        <small>What you'll do</small>
+        <ol class="howlist">
+          <li><span><b>Name the apparatus</b>: burette, pipette and more</span></li>
+          <li><span><b>Titrate step by step</b>: rinse, fill, pipette, swirl, stop at the end-point</span></li>
+          <li><span><b>Fill in your titration table</b> and pick concordant results</span></li>
+          <li><span><b>Calculate</b> the concentration of the alkali</span></li>
+          <li><span><b>Pure Chem:</b> choose indicators from titration curves</span></li>
+        </ol>
+      </div>
+      <div class="modes2">
+        <div class="mode2"><b>Pre-Lab</b><span>The full practical with coaching. Finish to earn your badge.</span></div>
+        <div class="mode2 dark"><b>CHALLENGE</b><span>Titrate a mystery sample against the clock. Unlocks with your badge.</span></div>
+      </div>
+    </div>
+
+    <div class="pcard form2">
+      <h2>Ready, scientist?</h2>
+      <div class="fields">
+        <label class="f f-name">Name<input id="pName" type="text" autocomplete="name" maxlength="60"></label>
+        <label class="f">Class<select id="pClass"><option value="">Choose…</option></select></label>
+        <label class="f">Register no.<input id="pReg" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="2"></label>
+      </div>
+      <p class="err" id="pErr" role="alert"></p>
+      <div class="grp2"><span>Start the Pre-Lab</span>
+        <div class="go2">
+          <button class="sbtn" type="button" data-course="combined">Combined Sci ▶<small>Technique + calculations</small></button>
+          <button class="sbtn tealb" type="button" data-course="pure">Pure Chem ▶<small>+ indicators &amp; pH curves</small></button>
+        </div>
+      </div>
+      <div class="grp2"><span>Challenge mode</span>
+        <div class="go2" id="chalBtns"></div>
+        <p class="lock" id="chalLock">🔒 Earn your Pre-Lab badge to unlock.</p>
+      </div>
+      <div class="badges" id="badges"></div>
+      <div class="best2"><span>Your best on this device</span><b id="txtBest">–</b></div>
+    </div>
+  </section>
+
+  <!-- ============ SCOREBOARD ============ -->
+  <div class="score" id="scoreboard" hidden>
+    <h2 id="sbTitle">Titration Lab</h2>
+    <span class="pill" id="sbCourse">Combined</span>
+    <span class="pill timer" id="sbTimer" hidden>⏱ 0:00</span>
+    <span class="pill" id="sbMist">⚠ 0</span>
+    <button class="btn ghost" id="btnHome" type="button">Quit</button>
+  </div>
+
+  <!-- ============ 1. APPARATUS ============ -->
+  <section id="scrApp" hidden>
+    <div class="app-grid">
+      <div class="card"><div class="apps" id="apps"></div></div>
+      <div class="card app-panel">
+        <div class="coach"><img src="https://scienceiskhool.github.io/scienceiskhool/assets/img/head.png" alt="" onerror="this.style.visibility='hidden'"><div class="bubble" id="appCoach"></div></div>
+        <div class="prompt" id="appPrompt"></div>
+        <div class="bar"><i id="appBar"></i></div>
+        <div class="fn" id="appFn" hidden><h3 id="appFnT"></h3><p id="appFnP"></p></div>
+        <div class="found" id="appFound"></div>
+        <div class="actions"><button class="btn teal" id="appNext" type="button" hidden>Next ▸</button></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ BRIEFING ============ -->
+  <section id="scrBrief" hidden>
+    <div class="card brief">
+      <div class="coach"><img src="https://scienceiskhool.github.io/scienceiskhool/assets/img/head.png" alt="" onerror="this.style.visibility='hidden'"><div class="bubble" id="brCoach"></div></div>
+      <p class="aim" id="brAim"></p>
+      <div class="eq" id="brEq"></div>
+      <div class="bgrid">
+        <div class="bbox" id="brBur"></div>
+        <div class="bbox" id="brFlask"></div>
+      </div>
+      <div><p class="small-h" style="margin-bottom:6px">The plan</p><ol class="bsteps" id="brSteps"></ol></div>
+      <div class="actions"><button class="btn teal" id="brGo" type="button">Start the experiment ▸</button></div>
+    </div>
+  </section>
+
+  <!-- ============ 2. BENCH ============ -->
+  <section id="scrBench" hidden>
+    <div class="bench">
+      <div class="card b-main">
+        <div class="coach"><img src="https://scienceiskhool.github.io/scienceiskhool/assets/img/head.png" alt="" onerror="this.style.visibility='hidden'"><div class="bubble" id="bCoach"></div></div>
+        <div id="bCtl"></div>
+      </div>
+      <div class="card scene-card"><svg id="scene" class="scene" viewBox="0 0 640 530" role="img" aria-label="Titration bench"></svg></div>
+      <div class="card b-extra">
+        <p class="aimpill" id="bAim"></p>
+        <p class="small-h" id="bRunName">Set-up</p>
+        <ol class="steps" id="bSteps"></ol>
+        <p class="small-h">Your titration table</p>
+        <div class="tscroll" id="bTable"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 3. TABLE ============ -->
+  <section id="scrTable" hidden>
+    <div class="card solo">
+      <div class="coach"><img src="https://scienceiskhool.github.io/scienceiskhool/assets/img/head.png" alt="" onerror="this.style.visibility='hidden'"><div class="bubble" id="tCoach"></div></div>
+      <div class="tscroll" id="tTable"></div>
+      <div class="avg"><span id="tAvgLbl">Average volume of acid used =</span><input id="tAvg" type="text" inputmode="decimal" autocomplete="off"><span>cm³</span></div>
+      <p class="fbk" id="tFb"></p>
+      <div class="actions"><button class="btn teal" id="tCheck" type="button">Check my table</button><button class="btn ghost" id="tShow" type="button" hidden>Show answers</button><button class="btn" id="tNext" type="button" hidden>Next ▸</button></div>
+    </div>
+  </section>
+
+  <!-- ============ 4. CALCULATION ============ -->
+  <section id="scrCalc" hidden>
+    <div class="card solo">
+      <div class="coach"><img src="https://scienceiskhool.github.io/scienceiskhool/assets/img/head.png" alt="" onerror="this.style.visibility='hidden'"><div class="bubble" id="cCoach"></div></div>
+      <h3 id="cTitle"></h3>
+      <div class="eq" id="cEq"></div>
+      <div class="given" id="cGiven"></div>
+      <div id="cRows" style="display:grid;gap:10px"></div>
+      <div class="hintbox" id="cHint" hidden></div>
+      <div class="actions"><button class="btn teal" id="cCheck" type="button">Check</button><button class="btn ghost" id="cHintBtn" type="button">💡 Hint</button><button class="btn" id="cNext" type="button" hidden>Next ▸</button></div>
+    </div>
+  </section>
+
+  <!-- ============ 5. INDICATORS (Pure) ============ -->
+  <section id="scrInd" hidden>
+    <div class="ind-grid">
+      <div class="card" style="padding:12px"><svg id="curve" class="curve" viewBox="0 0 560 380"></svg></div>
+      <div class="card app-panel">
+        <div class="coach"><img src="https://scienceiskhool.github.io/scienceiskhool/assets/img/head.png" alt="" onerror="this.style.visibility='hidden'"><div class="bubble" id="iCoach"></div></div>
+        <div class="bar"><i id="iBar"></i></div>
+        <p class="q" id="iQ"></p>
+        <div class="opts" id="iOpts"></div>
+        <p class="why" id="iWhy" hidden></p>
+        <div class="ikey">
+          <div><i style="background:linear-gradient(90deg,#e0453a,#f59a2e,#f7d03c)"></i><span><b>Methyl orange</b>: red → yellow, pH 3.1–4.4</span></div>
+          <div><i style="background:linear-gradient(90deg,#eef6f7,#ee6fb4)"></i><span><b>Phenolphthalein</b>: colourless → pink, pH 8.3–10.0</span></div>
+        </div>
+        <div class="actions"><button class="btn teal" id="iNext" type="button" hidden>Next ▸</button></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ RESULTS ============ -->
+  <section id="scrResults" hidden>
+    <div class="card results">
+      <h2 id="resTitle">Lab complete! 🎉</h2>
+      <div id="resBadge"></div>
+      <div class="stats" id="stats"></div>
+      <div id="resNote"></div>
+      <div class="send" id="send"><span id="sendMsg"></span><button class="btn sm" id="btnResend" type="button" hidden>Try again</button></div>
+      <div class="actions"><button class="btn orange" id="btnChal" type="button">🏁 Try challenge mode</button><button class="btn teal" id="btnAgain" type="button">Play again</button><button class="btn ghost" id="btnBack" type="button">Back to start</button></div>
+    </div>
+  </section>
+</div>
+<footer>Made for <a href="https://www.instagram.com/scienceiskhool/" target="_blank" rel="noopener">@scienceiskhool</a></footer>
+<script>
+(function () {
+"use strict";
+
+/* ==================================================================
+   SETTINGS
+================================================================== */
+var SUBMIT_URL = "https://script.google.com/macros/s/AKfycbxCTjRCQzLlWXmmY-5R0p75WCmeFLzC9ZM3gNbGRXpcc_d9qHMXdyCn12B4dHpnrBWe/exec";
+var SHEET_TAB = "Titration";          // tab name in your Google Sheet
+var MUSIC_FILE = "challenge.mp3";     // challenge-mode music, in the same folder as this page
+var MUSIC_VOLUME = 0.25;
+var STORE_KEY = "scienceiskhool.titrationLab.v1";
+
+/* ==================================================================
+   HELPERS
+================================================================== */
+function $(id) { return document.getElementById(id); }
+function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
+function shuffle(a) { a = a.slice(); for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+function rint(a, b) { return a + Math.floor(Math.random() * (b - a + 1)); }
+function pick(a) { return a[Math.floor(Math.random() * a.length)]; }
+function f2(drops) { return (drops * 0.05).toFixed(2); }               // burette units are drops of 0.05 cm³
+function fmtTime(sec) { sec = Math.round(sec); return Math.floor(sec / 60) + ":" + ("0" + (sec % 60)).slice(-2); }
+function fmtDate(t) { var d = new Date(t); return d.toLocaleDateString("en-SG", { day: "numeric", month: "short", year: "numeric" }) + ", " + d.toLocaleTimeString("en-SG", { hour: "numeric", minute: "2-digit" }); }
+function sf3(x) { return isFinite(x) ? Number(x).toPrecision(3) : "–"; }
+function parseNum(s) {
+  s = String(s || "").trim().replace(/\s+/g, "").replace(/[−–]/g, "-");
+  var sup = { "⁰": "0", "¹": "1", "²": "2", "³": "3", "⁴": "4", "⁵": "5", "⁶": "6", "⁷": "7", "⁸": "8", "⁹": "9", "⁻": "-" };
+  s = s.replace(/[⁰¹²³⁴⁵⁶⁷⁸⁹⁻]/g, function (c) { return sup[c]; });
+  s = s.replace(/[x×*]10\^?(-?\d+)$/i, "e$1");
+  if (!/^-?(\d+\.?\d*|\.\d+)(e-?\d+)?$/i.test(s)) return NaN;
+  return parseFloat(s);
+}
+function near(a, b, rel) { return isFinite(a) && Math.abs(a - b) <= Math.abs(b) * (rel || 0.01) + 1e-12; }
+function show(id) {
+  ["scrStart", "scrApp", "scrBrief", "scrBench", "scrTable", "scrCalc", "scrInd", "scrResults"].forEach(function (s) { $(s).hidden = s !== id; });
+  $("scoreboard").hidden = id === "scrStart" || id === "scrResults";
+  window.scrollTo(0, 0);
+}
+function coach(el, text, mood) { el.innerHTML = text; el.className = "bubble" + (mood ? " " + mood : ""); if (mood === "warn") { void el.offsetWidth; } }
+
+var INK = "#1d2626", TEAL = "#069494", PINK = "#FFC0CB", YEL = "#FCE883", ORA = "#FF8243";
+var GLASS = "#eef8f9", ACIDC = "#cdebf1", ALKC = "#e2f1f4";
+var COL = { mo: "#f7cf3a", moEnd: "#f59a2e", moOver: "#e0453a", pp: "#ef74b6", ppEnd: "#e9f4f6", none: "#e2f1f4" };
+var COURSE_NAME = { combined: "Combined Science", pure: "Pure Chemistry" };
+
+/* ==================================================================
+   CHEMISTRY DATA
+================================================================== */
+var ACIDS = {
+  HCl: { key: "HCl", name: "hydrochloric acid", f: "HCl", c: 0.100, ratio: 1, label: "HCl(aq)",
+    eq: "HCl(aq) + NaOH(aq) → NaCl(aq) + H<sub>2</sub>O(l)", ratioTxt: "1 mol of HCl reacts with 1 mol of NaOH" },
+  H2SO4: { key: "H2SO4", name: "sulfuric acid", f: "H<sub>2</sub>SO<sub>4</sub>", c: 0.0500, ratio: 2, label: "H₂SO₄(aq)",
+    eq: "H<sub>2</sub>SO<sub>4</sub>(aq) + 2NaOH(aq) → Na<sub>2</sub>SO<sub>4</sub>(aq) + 2H<sub>2</sub>O(l)", ratioTxt: "1 mol of H<sub>2</sub>SO<sub>4</sub> reacts with 2 mol of NaOH" }
+};
+var IND = {
+  mo: { name: "methyl orange", base: COL.mo, end: COL.moEnd, over: COL.moOver, change: "yellow to orange" },
+  pp: { name: "phenolphthalein", base: COL.pp, end: COL.ppEnd, over: COL.ppEnd, change: "pink to colourless" }
+};
+
+/* ==================================================================
+   APPARATUS ART  (each draws in its own local box)
+================================================================== */
+var UID = 0;
+function artBurette(o) {
+  o = o || {};
+  var s = '<rect x="13" y="0" width="14" height="345" rx="2" fill="' + GLASS + '"/>';
+  if (o.lvl != null) { var y = Math.max(1, 15 + o.lvl * 0.3); s += '<rect' + (o.ids ? ' id="bLiq"' : "") + ' x="14" y="' + y + '" width="12" height="' + (345 - y) + '" fill="' + ACIDC + '"/>'; }
+  for (var v = 0; v <= 50; v++) {
+    var yy = 15 + v * 6, big = v % 5 === 0;
+    s += '<line x1="13" y1="' + yy + '" x2="' + (13 + (big ? 8 : 4)) + '" y2="' + yy + '" stroke="' + INK + '" stroke-width="' + (big ? 1.2 : 0.7) + '"/>';
+    if (v % 10 === 0) s += '<text x="30" y="' + (yy + 3) + '" font-size="9" font-weight="700" fill="' + INK + '">' + v + "</text>";
+  }
+  s += '<rect x="13" y="0" width="14" height="345" rx="2" fill="none" stroke="' + INK + '" stroke-width="2"/>';
+  s += '<path d="M13 345 L17 352 L17 362 L23 362 L23 352 L27 345" fill="' + (o.lvl != null ? ACIDC : GLASS) + '" stroke="' + INK + '" stroke-width="2" stroke-linejoin="round"/>';
+  s += '<path d="M18 362 L18 392 L19 396 L21 396 L22 392 L22 362 Z" fill="' + (o.lvl != null && !o.bubble ? ACIDC : GLASS) + '" stroke="' + INK + '" stroke-width="1.8"/>';
+  if (o.bubble) s += '<ellipse cx="20" cy="377" rx="1.6" ry="5" fill="#fff" stroke="' + INK + '" stroke-width="1"/>';
+  s += '<g' + (o.ids ? ' id="cock"' : "") + ' transform="rotate(' + (o.tap || 0) + ' 20 356.5)"><rect x="3" y="353" width="34" height="7" rx="3.5" fill="' + TEAL + '" stroke="' + INK + '" stroke-width="2"/><circle cx="20" cy="356.5" r="4" fill="#fff" stroke="' + INK + '" stroke-width="1.6"/></g>';
+  return s;
+}
+var PIPE = "M17 0 L17 86 Q7 92 7 120 Q7 150 17 156 L17 214 L19 232 L21 232 L23 214 L23 156 Q33 150 33 120 Q33 92 23 86 L23 0 Z";
+function artPipette(o) {
+  o = o || {}; var id = "pc" + (++UID);
+  var s = '<defs><clipPath id="' + id + '"><path d="' + PIPE + '"/></clipPath></defs><path d="' + PIPE + '" fill="' + GLASS + '"/>';
+  var lvl = o.full ? 40 : o.lvl;
+  if (lvl != null) s += '<rect' + (o.ids ? ' id="pLiq"' : "") + ' x="0" y="' + lvl + '" width="40" height="' + Math.max(0, 240 - lvl) + '" fill="#bfe1e7" clip-path="url(#' + id + ')"/>';
+  s += '<path d="' + PIPE + '" fill="none" stroke="' + INK + '" stroke-width="2" stroke-linejoin="round"/><line x1="11" y1="40" x2="29" y2="40" stroke="' + INK + '" stroke-width="1.8"/>';
+  s += '<text x="20" y="123" font-size="8" text-anchor="middle" font-weight="800" fill="' + INK + '">25</text>';
+  return s;
+}
+function artFiller(o) {
+  o = o || {}; var air = o.air == null ? 1 : o.air, big = o.big, body = "#f4a3b5", sw = big ? 1.6 : 2;
+  function v(L, inner, hx, hy) { return big ? '<g data-valve="' + L + '" style="cursor:pointer">' + inner + '<circle cx="' + hx + '" cy="' + hy + '" r="15" fill="rgba(255,255,255,0)"/></g>' : inner; }
+  var s = v("E", '<rect class="vbody" x="4" y="71" width="21" height="10" rx="4" fill="' + body + '" stroke="' + INK + '" stroke-width="' + sw + '"/><circle class="vbody" cx="5" cy="76" r="6" fill="' + body + '" stroke="' + INK + '" stroke-width="' + sw + '"/>', 5, 76);
+  s += '<rect x="23" y="46" width="14" height="46" rx="3" fill="' + body + '" stroke="' + INK + '" stroke-width="' + sw + '"/><rect x="26" y="86" width="8" height="6" fill="#59666a"/>';
+  s += v("S", '<rect class="vbody" x="35" y="56" width="10" height="15" rx="4" fill="' + body + '" stroke="' + INK + '" stroke-width="' + sw + '"/>', 41, 63);
+  var rx = 20 * (0.5 + 0.5 * air), ry = 20 * (0.85 + 0.15 * air);
+  s += '<ellipse' + (o.ids ? ' id="fBulb"' : "") + ' cx="30" cy="' + (48 - ry).toFixed(2) + '" rx="' + rx.toFixed(2) + '" ry="' + ry.toFixed(2) + '" fill="' + PINK + '" stroke="' + INK + '" stroke-width="' + (big ? 2 : 2.5) + '"/>';
+  s += v("A", '<rect class="vbody" x="25" y="-2" width="10" height="14" rx="3" fill="' + body + '" stroke="' + INK + '" stroke-width="' + sw + '"/>', 30, 4);
+  if (big) s += artFillerBadge(50, 2, "A") + artFillerBadge(58, 64, "S") + artFillerBadge(-14, 76, "E") +
+    '<text x="64" y="6" font-size="6.5" font-weight="700" fill="#5a6b6b">air out</text><text x="70" y="68" font-size="6.5" font-weight="700" fill="#5a6b6b">suck up</text><text x="-24" y="93" font-size="6.5" font-weight="700" fill="#5a6b6b">empty</text>';
+  else s += '<text x="30" y="9" text-anchor="middle" font-size="7" font-weight="800" fill="' + INK + '">A</text><text x="40" y="67" text-anchor="middle" font-size="7" font-weight="800" fill="' + INK + '">S</text><text x="12" y="79" text-anchor="middle" font-size="7" font-weight="800" fill="' + INK + '">E</text>';
+  return s;
+}
+function artFunnel() { return '<path d="M2 4 L58 4 L34 30 L34 58 L26 58 L26 30 Z" fill="' + GLASS + '" stroke="' + INK + '" stroke-width="2.2" stroke-linejoin="round"/><path d="M2 4 L58 4" stroke="' + INK + '" stroke-width="3.5" stroke-linecap="round"/>'; }
+function artTile() { return '<rect x="0" y="1" width="100" height="9" rx="2" fill="#fff" stroke="' + INK + '" stroke-width="2"/><line x1="8" y1="4" x2="40" y2="4" stroke="#dfe7e8" stroke-width="2"/>'; }
+var FLASK = "M37 0 L37 20 L4 57 Q0 64 7 64 L83 64 Q90 64 86 57 L53 20 L53 0 Z";
+function artFlask(o) {
+  o = o || {}; var id = "fc" + (++UID);
+  var s = '<defs><clipPath id="' + id + '"><path d="' + FLASK + '"/></clipPath></defs><path d="' + FLASK + '" fill="' + GLASS + '"/>';
+  if (o.h) s += '<g clip-path="url(#' + id + ')"><rect' + (o.ids ? ' id="fLiq"' : "") + ' x="0" y="' + (64 - o.h) + '" width="90" height="' + (o.h + 2) + '" fill="' + o.col + '"/>' +
+      (o.ids ? '<ellipse id="flash" cx="45" cy="' + (64 - o.h + 4) + '" rx="13" ry="5" fill="' + (o.fcol || "#fff") + '" opacity="0"/>' : "") + "</g>";
+  s += '<path d="' + FLASK + '" fill="none" stroke="' + INK + '" stroke-width="2.2" stroke-linejoin="round"/><path d="M34 1 L56 1" stroke="' + INK + '" stroke-width="3" stroke-linecap="round"/>';
+  return s;
+}
+function artCylinder() {
+  var s = '<rect x="7" y="4" width="16" height="94" fill="' + GLASS + '" stroke="' + INK + '" stroke-width="2"/><rect x="7" y="60" width="16" height="38" fill="' + ALKC + '"/><rect x="7" y="4" width="16" height="94" fill="none" stroke="' + INK + '" stroke-width="2"/>';
+  for (var i = 0; i < 10; i++) s += '<line x1="7" y1="' + (14 + i * 8) + '" x2="' + (i % 2 ? 12 : 15) + '" y2="' + (14 + i * 8) + '" stroke="' + INK + '" stroke-width=".9"/>';
+  s += '<path d="M5 4 L25 4 L27 1" fill="none" stroke="' + INK + '" stroke-width="2"/><rect x="0" y="98" width="30" height="6" rx="2" fill="' + TEAL + '" stroke="' + INK + '" stroke-width="2"/>';
+  return s;
+}
+var BEAK = "M3 2 L8 7 L8 62 Q8 66 12 66 L48 66 Q52 66 52 62 L52 7 L57 2";
+function artBeaker(label, liq) {
+  var id = "bk" + (++UID);
+  var s = '<defs><clipPath id="' + id + '"><path d="' + BEAK + ' Z"/></clipPath></defs><path d="' + BEAK + ' Z" fill="' + GLASS + '"/>';
+  if (liq) s += '<rect x="0" y="26" width="60" height="42" fill="' + liq + '" clip-path="url(#' + id + ')"/>';
+  s += '<path d="' + BEAK + '" fill="none" stroke="' + INK + '" stroke-width="2.2" stroke-linejoin="round"/>';
+  for (var i = 0; i < 3; i++) s += '<line x1="8" y1="' + (20 + i * 13) + '" x2="15" y2="' + (20 + i * 13) + '" stroke="' + INK + '" stroke-width="1"/>';
+  if (label) s += '<rect x="10" y="38" width="40" height="14" rx="2" fill="#fff" stroke="' + INK + '" stroke-width="1.3"/><text x="30" y="48" font-size="7.2" text-anchor="middle" font-weight="800" fill="' + INK + '">' + label + "</text>";
+  return s;
+}
+function artWash() {
+  return '<path d="M25 18 L25 6 Q25 2 30 2 L44 2 L48 5" fill="none" stroke="' + INK + '" stroke-width="2.4" stroke-linecap="round"/>' +
+    '<rect x="18" y="14" width="14" height="12" rx="2" fill="' + TEAL + '" stroke="' + INK + '" stroke-width="2"/>' +
+    '<rect x="6" y="24" width="38" height="58" rx="10" fill="#fff" stroke="' + INK + '" stroke-width="2.2"/><rect x="8" y="44" width="34" height="36" rx="8" fill="' + ALKC + '"/>' +
+    '<text x="25" y="66" font-size="10" text-anchor="middle" font-weight="800" fill="' + INK + '">H₂O</text>';
+}
+function artStand() {
+  return '<rect x="0" y="188" width="104" height="12" rx="3" fill="#59666a" stroke="' + INK + '" stroke-width="2"/><rect x="12" y="4" width="8" height="184" fill="#8b9a9c" stroke="' + INK + '" stroke-width="2"/>' +
+    '<rect x="8" y="64" width="16" height="14" rx="2" fill="#59666a" stroke="' + INK + '" stroke-width="2"/><rect x="24" y="68" width="50" height="6" fill="#8b9a9c" stroke="' + INK + '" stroke-width="1.8"/>' +
+    '<rect x="70" y="56" width="7" height="24" rx="2" fill="' + ORA + '" stroke="' + INK + '" stroke-width="1.8"/><rect x="88" y="56" width="7" height="24" rx="2" fill="' + ORA + '" stroke="' + INK + '" stroke-width="1.8"/><path d="M77 60 L88 60 M77 76 L88 76" stroke="' + INK + '" stroke-width="1.8"/>';
+}
+function g(tx, ty, inner, extra) { return '<g transform="translate(' + tx + " " + ty + ")" + (extra || "") + '">' + inner + "</g>"; }
+
+/* gallery entries (stage 1) */
+var APPS = [
+  { id: "burette", name: "burette", fn: "Adds the acid a little at a time and measures the volume added. Read it to the nearest 0.05 cm³.", vb: "-6 -4 56 404", art: function () { return artBurette({ lvl: 60 }); } },
+  { id: "pipette", name: "pipette", fn: "Measures out a fixed volume of the alkali (25.0 cm³) accurately.", vb: "-30 -4 100 240", art: function () { return artPipette({}); } },
+  { id: "filler", name: "pipette filler", fn: "Fits on top of the pipette to suck liquid up safely. Never use your mouth!", vb: "-24 -8 110 106", art: function () { return artFiller({}); } },
+  { id: "flask", name: "conical flask", fn: "Holds the alkali during the titration. Its shape lets you swirl it without spilling.", vb: "-6 -10 102 84", art: function () { return artFlask({ h: 14, col: ALKC }); } },
+  { id: "stand", name: "retort stand and clamp", fn: "Holds the burette upright (vertical) and steady.", vb: "-6 -4 116 208", art: artStand },
+  { id: "tile", name: "white tile", fn: "Goes under the conical flask so you can see the colour change clearly.", vb: "-4 -30 108 70", art: artTile },
+  { id: "funnel", name: "filter funnel", fn: "Helps you pour acid into the burette without spilling. Take it out before you take a reading!", vb: "-8 -6 76 72", art: artFunnel },
+  { id: "beaker", name: "beaker", fn: "Holds the solutions before you transfer them.", vb: "-6 -6 72 80", art: function () { return artBeaker("", ACIDC); } },
+  { id: "cyl", name: "measuring cylinder", fn: "Measures volumes roughly (to about 0.5 cm³). Not accurate enough for titration.", vb: "-30 -4 90 112", art: artCylinder },
+  { id: "wash", name: "wash bottle", fn: "Squirts distilled water for rinsing apparatus.", vb: "-6 -4 62 92", art: artWash }
+];
+var NAME = { burette: "burette", pipette: "pipette", filler: "pipette filler", funnel: "filter funnel", tile: "white tile", flask: "conical flask", cyl: "measuring cylinder", beaker: "beaker", wash: "wash bottle" };
+
+/* ==================================================================
+   PROFILE + BADGES (saved in this browser only)
+================================================================== */
+function loadStore() { try { var o = JSON.parse(localStorage.getItem(STORE_KEY) || "{}"); return o && typeof o === "object" ? o : {}; } catch (e) { return {}; } }
+function saveStore(o) { try { localStorage.setItem(STORE_KEY, JSON.stringify(o)); return true; } catch (e) { return false; } }
+var CLASSES = (function () { var v = ["Charity", "Courage", "Faith", "Hope", "Humility", "Integrity", "Joy", "Love", "Respect"], out = []; ["S1", "S2", "S3", "S4"].forEach(function (l) { v.forEach(function (x) { out.push(l + " " + x); }); }); out.push("5 Faith", "Visitor"); return out; })();
+$("pClass").insertAdjacentHTML("beforeend", CLASSES.map(function (c) { return '<option value="' + c + '">' + c + "</option>"; }).join(""));
+function readProfile() { return { name: $("pName").value.replace(/\s+/g, " ").trim(), cls: $("pClass").value, reg: String(parseInt($("pReg").value, 10) || "") }; }
+function pid(p) { return [p.name.toLowerCase(), p.cls, p.reg].join("|"); }
+function profileError(p) {
+  if (p.name.length < 2) return "Type your name first.";
+  if (!p.cls) return "Choose your class.";
+  if (p.cls !== "Visitor" && (!p.reg || +p.reg < 1 || +p.reg > 50)) return "Type your register number.";
+  return "";
+}
+function medalSVG(course) {
+  var ribbon = course === "combined" ? "#FF8243" : "#069494";
+  return '<svg viewBox="0 0 80 96" aria-hidden="true"><path d="M22 2 L36 2 L46 34 L32 38 Z" fill="' + ribbon + '" stroke="#1d2626" stroke-width="2.5" stroke-linejoin="round"/><path d="M58 2 L44 2 L34 34 L48 38 Z" fill="#FFC0CB" stroke="#1d2626" stroke-width="2.5" stroke-linejoin="round"/>' +
+    '<circle cx="40" cy="62" r="29" fill="#FCE883" stroke="#1d2626" stroke-width="3"/><circle cx="40" cy="62" r="21" fill="#fff" stroke="#1d2626" stroke-width="2"/>' +
+    '<g stroke="#1d2626" stroke-linejoin="round"><rect x="37.5" y="42" width="5" height="20" fill="#cdebf1" stroke-width="1.6"/><rect x="34" y="60" width="12" height="3" rx="1.5" fill="#069494" stroke-width="1.3"/><path d="M39.5 63 L39.5 68 L40.5 68 L40.5 63" fill="#cdebf1" stroke-width="1.2"/>' +
+    '<path d="M37 69 L37 72 L30 80 Q29 82 31 82 L49 82 Q51 82 50 80 L43 72 L43 69 Z" fill="#ef74b6" stroke-width="1.6"/></g></svg>';
+}
+function badgeHTML(course, rec, p, best) {
+  return '<div class="badgecard">' + medalSVG(course) + '<div style="min-width:0"><div class="bs">' + COURSE_NAME[course] + '</div><div class="bt">Titration Pre-Lab complete</div>' +
+    '<div class="who">' + esc(p.name) + " · " + esc(p.cls) + (p.reg ? " · Reg " + esc(p.reg) : "") + '</div><div class="when">Earned ' + esc(fmtDate(rec.t)) + "</div>" +
+    (best ? '<div class="best">🏁 Challenge best: ' + best.score + " pts (" + fmtTime(best.secs) + ")</div>" : "") + "</div></div>";
+}
+function renderStart() {
+  var p = readProfile(), st = loadStore(), id = pid(p), html = "", any = false, valid = !profileError(p), btns = "", bests = [];
+  ["combined", "pure"].forEach(function (c) {
+    var rec = valid && st.badges && st.badges[id + "|" + c];
+    if (rec) { any = true; html += badgeHTML(c, rec, p, st.best && st.best[id + "|" + c]); }
+    btns += '<button class="sbtn arcade" type="button" data-chal="' + c + '"' + (rec ? "" : " disabled") + ">" + (rec ? "" : "🔒 ") + (c === "combined" ? "COMBINED" : "PURE") + "<small>" + (rec ? "Unlocked" : "Locked") + "</small></button>";
+    var bb = valid && st.best && st.best[id + "|" + c];
+    if (bb) bests.push((c === "combined" ? "Combined " : "Pure ") + bb.score);
+  });
+  $("badges").innerHTML = html;
+  $("chalBtns").innerHTML = btns;
+  $("chalLock").hidden = any;
+  $("txtBest").textContent = bests.length ? "Challenge " + bests.join(" · ") : "–";
+  $("chalBtns").querySelectorAll("[data-chal]").forEach(function (b) { b.addEventListener("click", function () { var pr = requireProfile(); if (pr) startChallenge(b.getAttribute("data-chal"), pr); }); });
+}
+function requireProfile() {
+  var p = readProfile(), e = profileError(p);
+  $("pErr").textContent = e;
+  if (e) { (p.name.length < 2 ? $("pName") : !p.cls ? $("pClass") : $("pReg")).focus(); return null; }
+  var st = loadStore(); st.profile = p; saveStore(st);
+  return p;
+}
+(function initProfile() {
+  var st = loadStore();
+  if (st.profile) { $("pName").value = st.profile.name || ""; $("pClass").value = st.profile.cls || ""; $("pReg").value = st.profile.reg || ""; }
+  ["pName", "pClass", "pReg"].forEach(function (id) {
+    $(id).addEventListener("input", function () { $("pErr").textContent = ""; renderStart(); });
+    $(id).addEventListener("change", function () { var s2 = loadStore(); s2.profile = readProfile(); saveStore(s2); });
+  });
+  $("heroArt").innerHTML = '<svg viewBox="0 0 110 210"><rect x="0" y="0" width="110" height="210" fill="none"/>' + g(36, 0, artBurette({ lvl: 120 }), " scale(.42)") +
+    g(6, 160, artFlask({ h: 18, col: COL.pp }), " scale(1.05)") + "</svg>";
+  renderStart();
+})();
+
+/* ==================================================================
+   SOUND, MUSIC, CONFETTI
+================================================================== */
+function prefGet(k, d) { var st = loadStore(); return st.prefs && k in st.prefs ? st.prefs[k] : d; }
+function prefSet(k, v) { var st = loadStore(); st.prefs = st.prefs || {}; st.prefs[k] = v; saveStore(st); }
+var Sound = {
+  on: prefGet("sound", true), ctx: null,
+  tone: function (f, type, dur, vol, delay) {
+    if (!this.on) return;
+    try {
+      this.ctx = this.ctx || new (window.AudioContext || window.webkitAudioContext)();
+      if (this.ctx.state === "suspended") this.ctx.resume();
+      var c = this.ctx, t = c.currentTime + (delay || 0), o = c.createOscillator(), gg = c.createGain();
+      o.type = type; o.frequency.setValueAtTime(f, t);
+      gg.gain.setValueAtTime(vol, t); gg.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      o.connect(gg); gg.connect(c.destination); o.start(t); o.stop(t + dur + .02);
+    } catch (e) {}
+  },
+  drip: function () { this.tone(1300, "sine", .05, .03); },
+  pop: function () { this.tone(520, "triangle", .07, .06); },
+  ok: function () { this.tone(660, "square", .09, .06); this.tone(990, "square", .14, .06, .08); },
+  bad: function () { this.tone(180, "square", .2, .07); this.tone(150, "square", .2, .05, .06); },
+  win: function () { [523, 659, 784, 1047, 784, 1047].forEach(function (n, i) { Sound.tone(n, "square", .14, .06, i * .12); }); }
+};
+var Music = {
+  el: $("music"), on: prefGet("music", true), vol: MUSIC_VOLUME, wanted: false,
+  start: function () { this.wanted = true; if (!this.el.getAttribute("src")) this.el.src = MUSIC_FILE; try { this.el.currentTime = 0; } catch (e) {} this.play(); },
+  play: function () { if (!this.on || !this.wanted) return; try { this.el.volume = this.vol; var pr = this.el.play(); if (pr && pr.catch) pr.catch(function () {}); } catch (e) {} },
+  stop: function () { this.wanted = false; try { this.el.pause(); } catch (e) {} }
+};
+document.addEventListener("visibilitychange", function () { if (document.hidden) { try { Music.el.pause(); } catch (e) {} } else Music.play(); });
+function paintSound() {
+  $("btnSound").classList.toggle("off", !Sound.on); $("btnSound").setAttribute("aria-label", Sound.on ? "Sound effects on" : "Sound effects off");
+  $("btnMusic").classList.toggle("off", !Music.on); $("btnMusic").setAttribute("aria-label", Music.on ? "Music on" : "Music off");
+}
+$("btnSound").addEventListener("click", function () { Sound.on = !Sound.on; prefSet("sound", Sound.on); paintSound(); if (Sound.on) Sound.pop(); });
+$("btnMusic").addEventListener("click", function () { Music.on = !Music.on; prefSet("music", Music.on); paintSound(); if (!Music.on) { try { Music.el.pause(); } catch (e) {} } else Music.play(); });
+paintSound();
+var Confetti = {
+  c: $("confetti"), p: [], on: false,
+  go: function () {
+    if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    var c = this.c, w = c.width = innerWidth, h = c.height = innerHeight, cols = ["#FF8243", "#FFC0CB", "#FCE883", "#069494", "#1d2626"];
+    c.hidden = false; this.on = true; this.p = [];
+    for (var i = 0; i < 140; i++) this.p.push({ x: Math.random() * w, y: -Math.random() * h, s: 6 + Math.random() * 8, v: 2 + Math.random() * 3, a: Math.random() * 6, col: cols[i % cols.length] });
+    var self = this, ctx = c.getContext("2d"), t0 = performance.now();
+    (function frame(t) {
+      if (!self.on) return;
+      ctx.clearRect(0, 0, w, h);
+      self.p.forEach(function (q) { q.y += q.v; q.a += .1; ctx.fillStyle = q.col; ctx.fillRect(q.x + Math.sin(q.a) * 6, q.y, q.s, q.s * .6); });
+      if (t - t0 < 4500) requestAnimationFrame(frame); else self.stop();
+    })(t0);
+  },
+  stop: function () { this.on = false; this.c.hidden = true; }
+};
+
+/* ==================================================================
+   GAME STATE
+================================================================== */
+var G = null, S = null, LOOP = null, TIMER = null;
+function newGame(course, mode, profile) {
+  stopLoop();
+  var acid = mode === "lab" ? ACIDS.HCl : ACIDS[pick(["HCl", "H2SO4"])];
+  // end-point: Ve = k + 0.4 drops, so the (k+1)th drop is the one that changes the colour
+  var k = mode === "lab" ? rint(420, 600) : rint(380, 720);       // 21.00–30.00 cm³ / 19.00–36.00 cm³
+  G = { course: course, mode: mode, profile: profile, acid: acid, k1: k + 1, cNaOH: (k + 0.4) * 0.05 * acid.c * acid.ratio / 25,
+    runs: [], run: null, mist: 0, mlog: {}, checks: {}, t0: Date.now(), ind: null, steps: [], si: 0, phase: "app" };
+  $("sbCourse").textContent = course === "combined" ? "Combined" : "Pure";
+  $("sbTimer").hidden = mode !== "challenge";
+  updateMist();
+  if (mode === "challenge") { TIMER = setInterval(function () { $("sbTimer").textContent = "⏱ " + fmtTime((Date.now() - G.t0) / 1000); }, 500); $("sbTimer").textContent = "⏱ 0:00"; }
+}
+function updateMist() { $("sbMist").textContent = "⚠ " + (G ? G.mist : 0); }
+function mistake(label) { G.mist++; if (G.phase === "bench") G.mbench = (G.mbench || 0) + 1; G.mlog[label] = (G.mlog[label] || 0) + 1; updateMist(); Sound.bad(); }
+function checkpoint(key, ok) { if (!(key in G.checks)) G.checks[key] = ok; }
+function stopLoop() { if (LOOP) { clearInterval(LOOP); LOOP = null; } if (TIMER) { clearInterval(TIMER); TIMER = null; } }
+function goStart() { stopLoop(); Music.stop(); Confetti.stop(); G = null; renderStart(); show("scrStart"); }
+$("btnHome").addEventListener("click", goStart);
+document.querySelectorAll("[data-course]").forEach(function (b) {
+  b.addEventListener("click", function () { var p = requireProfile(); if (!p) return; newGame(b.getAttribute("data-course"), "lab", p); startApparatus(); });
+});
+
+/* ==================================================================
+   1. NAME THE APPARATUS
+================================================================== */
+function appById(id) { for (var i = 0; i < APPS.length; i++) if (APPS[i].id === id) return APPS[i]; }
+function startApparatus() {
+  G.phase = "app"; G.appOrder = shuffle(APPS.map(function (a) { return a.id; })); G.appIdx = 0;
+  $("apps").innerHTML = shuffle(APPS).map(function (a) {
+    return '<button class="app" type="button" data-app="' + a.id + '" aria-label="Apparatus"><svg viewBox="' + a.vb + '" aria-hidden="true">' + a.art() + '</svg><span class="nm"></span></button>';
+  }).join("");
+  $("apps").querySelectorAll("[data-app]").forEach(function (b) { b.addEventListener("click", function () { onApp(b); }); });
+  $("appFound").innerHTML = "";
+  coach($("appCoach"), "First, get to know your apparatus. Tap the one I name. Get it right first time to score!");
+  $("sbTitle").textContent = "Step 1 · Name the apparatus";
+  show("scrApp");
+  askApp();
+}
+function askApp() {
+  var a = appById(G.appOrder[G.appIdx]);
+  $("appPrompt").innerHTML = "Tap the <b>" + a.name + "</b>";
+  $("appBar").style.width = (G.appIdx / G.appOrder.length * 100) + "%";
+  $("appFn").hidden = true; $("appNext").hidden = true; G.appWrong = false; G.appLock = false;
+}
+function onApp(btn) {
+  if (G.appLock) return;
+  var id = btn.getAttribute("data-app"), want = G.appOrder[G.appIdx], a = appById(want);
+  if (btn.classList.contains("ok") || btn.classList.contains("miss")) { coach($("appCoach"), "You've already named that one: the " + appById(id).name + "."); return; }
+  if (id === want) {
+    btn.classList.add(G.appWrong ? "miss" : "ok"); btn.querySelector(".nm").textContent = a.name;
+    checkpoint("Name: " + a.name, !G.appWrong);
+    $("appFound").insertAdjacentHTML("beforeend", '<span class="' + (G.appWrong ? "miss" : "") + '">' + esc(a.name) + "</span>");
+    $("appFnT").textContent = a.name.charAt(0).toUpperCase() + a.name.slice(1); $("appFnP").textContent = a.fn; $("appFn").hidden = false;
+    coach($("appCoach"), G.appWrong ? "There it is. Remember what it looks like!" : "Correct! ✓", G.appWrong ? "" : "good");
+    Sound.ok(); G.appLock = true;
+    $("appNext").textContent = G.appIdx === G.appOrder.length - 1 ? "To the lab bench ▸" : "Next ▸"; $("appNext").hidden = false; $("appNext").focus();
+  } else {
+    if (!G.appWrong) { G.appWrong = true; mistake("Name: " + a.name); } else Sound.bad();
+    btn.classList.remove("flash-bad"); void btn.offsetWidth; btn.classList.add("flash-bad");
+    coach($("appCoach"), "That's the <b>" + appById(id).name + "</b>. Try again!", "warn");
+  }
+}
+$("appNext").addEventListener("click", function () {
+  G.appIdx++;
+  if (G.appIdx >= G.appOrder.length) { $("appBar").style.width = "100%"; goBrief(); } else askApp();
+});
+
+/* ==================================================================
+   BRIEFING: aim, equation, what goes where
+================================================================== */
+function concTxt(A) { return A.c === 0.1 ? "0.100" : "0.0500"; }
+function goBrief() {
+  var A = G.acid, lab = G.mode === "lab";
+  $("sbTitle").textContent = lab ? "Before you start" : "Challenge briefing";
+  coach($("brCoach"), lab ? "Read this first. Knowing what goes where helps you make the right choices at the bench." : "A mystery sample! Note which acid you're using this time.");
+  $("brAim").innerHTML = "<b>Aim</b> To find the concentration of a sodium hydroxide solution by titrating it with <b>" + concTxt(A) + " mol/dm³ " + A.name + "</b>.";
+  $("brEq").innerHTML = A.eq;
+  $("brBur").innerHTML = '<svg viewBox="-4 -4 52 404" aria-hidden="true">' + artBurette({ lvl: 30 }) + "</svg><div><h3>In the burette</h3><p>" + A.name.charAt(0).toUpperCase() + A.name.slice(1) + ", " + A.f + "(aq)<br>Concentration known: <b>" + concTxt(A) + " mol/dm³</b></p></div>";
+  $("brFlask").innerHTML = '<svg viewBox="-6 -10 102 84" aria-hidden="true">' + artFlask({ h: 14, col: ALKC }) + "</svg><div><h3>In the conical flask</h3><p>Sodium hydroxide, NaOH(aq)<br><b>25.0 cm³</b> measured with a pipette<br>Concentration: <b>unknown</b> (that's what you'll find!)</p></div>";
+  $("brSteps").innerHTML = ["Set up and fill the burette with " + A.name + ", then read the initial reading.",
+    "Pipette 25.0 cm³ of sodium hydroxide into a conical flask and add an indicator.",
+    "Add acid from the burette until the indicator just changes colour (the <b>end-point</b>).",
+    "Do a rough titration, then repeat until you have <b>concordant</b> results (within 0.10 cm³).",
+    "Use the average volume of acid to calculate the concentration of the sodium hydroxide."].map(function (t) { return "<li>" + t + "</li>"; }).join("");
+  $("bAim").innerHTML = "<b>Aim:</b> find the concentration of NaOH(aq) (25.0 cm³ in the flask) using " + concTxt(A) + " mol/dm³ " + A.f + "(aq) in the burette.";
+  show("scrBrief");
+}
+$("brGo").addEventListener("click", startBench);
+
+/* ==================================================================
+   2. THE BENCH
+================================================================== */
+var BC = $("bCoach"), CTL = $("bCtl"), SCENE = $("scene"), HOLDS = [];
+function releaseHolds() { var h = HOLDS; HOLDS = []; h.forEach(function (f) { f(); }); if (S) S.valve = null; }
+function roughDrops() { var r = G.runs[0]; return r && r.finLvl != null ? r.finLvl - r.initLvl : null; }
+
+function firstSteps() {
+  var A = G.acid;
+  return [
+    { t: "Clamp the burette", view: "stand", type: "drag", item: "burette", zone: "clamp", key: "Clamp the burette",
+      say: "Clamp the <b>burette</b> upright in the retort stand. Drag it there (or tap it, then tap the clamp).", ok: function () { S.burette = "clamp"; } },
+    { t: "Rinse the burette", view: "stand", type: "choice", key: "Rinse the burette", q: "Before filling it, rinse the burette with…", opts: [
+      { t: "distilled water, then a little of the " + A.name, ok: true, why: "Rinsing with the acid removes the water left inside, so the acid isn't diluted." },
+      { t: "distilled water only", why: "Water left inside would dilute the acid, so you'd need more of it." },
+      { t: "the sodium hydroxide solution", why: "Alkali left inside would react with the acid." },
+      { t: "no need to rinse it", why: "Anything left inside could dilute the acid or react with it." }] },
+    { t: "Put in the funnel", view: "stand", type: "drag", item: "funnel", zone: "top", key: "Funnel into burette",
+      say: "Place the <b>filter funnel</b> in the top of the burette.", ok: function () { S.funnel = "top"; } },
+    { t: "Fill with acid", view: "stand", type: "choice", key: "Fill the burette safely", q: "Fill the burette with " + A.name + ". How?", opts: [
+      { t: "Pour slowly through the funnel, with the top of the burette below eye level", ok: true, why: "Keeping the burette top below eye level keeps acid away from your eyes, and pouring slowly stops spills." },
+      { t: "Stand on a stool and pour quickly", why: "Pouring acid above eye level is dangerous, and pouring fast causes spills." },
+      { t: "Add it with the pipette", why: "Use the funnel to fill the burette. The pipette is for measuring the alkali." }],
+      ok: function () { S.burLvl = -24; S.bubble = true; } },
+    { t: "Remove the funnel", view: "stand", type: "choice", key: "Remove the funnel", q: "The burette is filled. What about the funnel?", opts: [
+      { t: "Take it out before taking any readings", ok: true, why: "Drops left in the funnel could drip in later and change the reading." },
+      { t: "Leave it in, ready for refilling", why: "Drops left in the funnel can drip in during the titration and change the reading." }],
+      ok: function () { S.funnel = "tray"; } },
+    { t: "Fill the jet", view: "stand", type: "choice", key: "Air bubble in the jet", q: "There's an air bubble in the jet below the tap. What should you do?", opts: [
+      { t: "Open the tap and run a little acid out until the jet is full", ok: true, why: "If the bubble came out during the titration, your volume reading would be wrong." },
+      { t: "Leave it. It's too small to matter", why: "If the bubble comes out during the titration, the volume reading will be wrong." },
+      { t: "Tap the top of the burette", why: "That won't remove it. Run some acid through the jet instead." }],
+      ok: function () { S.bubble = false; S.burLvl = rint(2, 30); } },
+    { t: "Initial reading", view: "stand", type: "read", which: "init" },
+    { t: "Rinse the pipette", view: "pip", type: "choice", key: "Rinse the pipette", q: "Now the alkali. Rinse the pipette with…", opts: [
+      { t: "distilled water, then a little of the sodium hydroxide", ok: true, why: "Rinsing with the alkali stops leftover water from diluting it." },
+      { t: "distilled water only", why: "Water left inside would dilute the alkali, so there'd be fewer moles in 25.0 cm³." },
+      { t: "the " + A.name, why: "Acid left inside would react with some of the alkali." }],
+      ok: function () { S.pipette = "beaker"; S.pipPos = "beaker"; S.pV = 232; } },
+    { t: "Attach the filler", view: "pip", type: "drag", item: "filler", zone: "pipTop", key: "Attach the pipette filler",
+      say: "The pipette is standing in the NaOH. Fit the <b>pipette filler</b> on top. Never suck with your mouth!", ok: function () { S.filler = "pipette"; S.air = 1; } },
+    { t: "Fill to the mark", view: "pip", type: "filler", mode: "fill", key: "Pipette to the mark" },
+    { t: "Rinse the flask", view: "pip", type: "choice", key: "Rinse the conical flask", q: "Get the conical flask ready. It should be…", opts: [
+      { t: "rinsed with distilled water only (it can stay wet)", ok: true, why: "Water doesn't change the number of moles of alkali you pipette in." },
+      { t: "rinsed with the sodium hydroxide solution", why: "Extra alkali would stay in the flask, so you'd need more acid." },
+      { t: "rinsed with the " + A.name, why: "Acid left in the flask would react with some of the alkali." }] },
+    { t: "Flask by the beaker", view: "pip", type: "drag", item: "flask", zone: "flaskPip", key: "Conical flask ready",
+      say: "Put the <b>conical flask</b> on the bench next to the beaker.", ok: function () { S.flask.at = "pip"; } },
+    { t: "Run in the alkali", view: "pip", type: "filler", mode: "drain", key: "Empty the pipette" },
+    { t: "The last drop", view: "pip", type: "choice", key: "Last drop in the pipette", q: "A small drop of alkali stays in the pipette tip. What do you do?", opts: [
+      { t: "Leave it. Touch the tip against the inside of the flask", ok: true, why: "The pipette is made to leave that last drop behind." },
+      { t: "Blow it out into the flask", why: "The pipette is made to leave that drop behind. Blowing it out adds extra alkali." },
+      { t: "Shake it into the flask", why: "The pipette is made to leave that drop behind. Shaking it out adds extra alkali." }],
+      ok: function () { S.pipette = "tray"; S.filler = "tray"; } },
+    { t: "Add indicator", view: "pip", type: "choice", key: "Choose an indicator", q: "Add 2–3 drops of a suitable indicator.", opts: [
+      { t: "Methyl orange", ok: true, ind: "mo", why: "Methyl orange is yellow in the alkali. It turns orange at the end-point." },
+      { t: "Phenolphthalein", ok: true, ind: "pp", why: "Phenolphthalein is pink in the alkali. It turns colourless at the end-point." },
+      { t: "Universal indicator", why: "Universal indicator changes colour gradually, so there's no sharp end-point." }],
+      ok: function (o) { G.ind = o.ind; S.flask.ind = o.ind; } },
+    { t: "White tile", view: "stand", type: "drag", item: "tile", zone: "under", key: "White tile",
+      say: "Back to the burette. Put the <b>white tile</b> under it.", ok: function () { S.tile = "under"; } },
+    { t: "Flask under the burette", view: "stand", type: "drag", item: "flask", zone: "under", key: "Flask under the burette",
+      say: "Put the <b>conical flask</b> (with your alkali and indicator) on the white tile, under the jet.", ok: function () { S.flask.at = "under"; } },
+    { t: "Rough titration", view: "titrate", type: "titrate" },
+    { t: "Final reading", view: "titrate", type: "read", which: "fin" }
+  ];
+}
+function repeatSteps() {
+  return [
+    { t: "Wash the flask", view: "titrate", type: "choice", key: "Wash the flask (repeat)", q: "Get the conical flask ready for this titration.", opts: [
+      { t: "Wash it out with distilled water", ok: true, why: "Now there's no leftover acid or alkali in it." },
+      { t: "Use it as it is", why: "It still holds the last mixture, including some excess acid." },
+      { t: "Rinse it with the sodium hydroxide", why: "Extra alkali would stay in the flask, so you'd need more acid." }],
+      ok: function () { S.flask.alk = false; S.flask.vol = 0; S.flask.add = 0; } },
+    { t: "Pipette + indicator", view: "titrate", type: "action", btn: "Pipette 25.0 cm³ of NaOH into the flask and add 2–3 drops of " + IND[G.ind].name,
+      ok: function () { S.flask.alk = true; S.flask.vol = 1; S.flask.ind = G.ind; S.flask.add = 0; } },
+    { t: "Enough acid?", view: "titrate", type: "refill" },
+    { t: "Initial reading", view: "titrate", type: "read", which: "init" },
+    { t: "Accurate titration", view: "titrate", type: "titrate" },
+    { t: "Final reading", view: "titrate", type: "read", which: "fin" }
+  ];
+}
+function startBench() {
+  G.phase = "bench";
+  S = { burette: "tray", funnel: "tray", tile: "tray", filler: "tray", pipette: "tray", pipPos: "beaker", pV: 232, air: 1, burLvl: null, bubble: false, tap: 0, acc: 0, flow: null,
+    flask: { alk: false, vol: 0, ind: null, at: "tray", add: 0 }, sel: null, flashT: 0, flashDur: 0, empty: false, valve: null };
+  G.runs = [];
+  show("scrBench");
+  startRun(false);
+}
+function startRun(retry) {
+  releaseHolds();
+  var n = retry ? G.runs.length - 1 : G.runs.length;
+  var r = { label: n === 0 ? "Rough" : String(n), rough: n === 0, initLvl: null, finLvl: null, init: "", fin: "", over: false, swirls: 0, early: false };
+  if (retry) G.runs[n] = r; else G.runs.push(r);
+  G.run = r; S.empty = false;
+  G.steps = n === 0 ? firstSteps() : repeatSteps(); G.si = 0;
+  $("bRunName").textContent = n === 0 ? "Set-up + rough titration" : "Accurate titration " + r.label;
+  $("sbTitle").textContent = "Step 2 · " + (n === 0 ? "Set-up + rough titration" : "Accurate titration " + r.label);
+  runStep();
+}
+function stepKey(st) { return (st.key || st.t) + (G.run.rough ? "" : " (titration " + G.run.label + ")"); }
+function runStep() {
+  releaseHolds();
+  if (LOOP) { clearInterval(LOOP); LOOP = null; }
+  var st = G.steps[G.si];
+  if (!st) { endRun(); return; }
+  G.stepWrong = false; st.tries = 0; S.sel = null;
+  if (st.view !== "pip" && S.flask.at === "pip") S.flask.at = "tray";
+  $("bSteps").innerHTML = G.steps.map(function (s, i) { return '<li class="' + (i < G.si ? "ok" : i === G.si ? "cur" : "") + '">' + s.t + "</li>"; }).join("");
+  renderBTable(); renderScene();
+  CTL.innerHTML = "";
+  var carry = G.carry ? G.carry + "<br>" : ""; G.carry = null;
+  if (st.type === "drag") {
+    coach(BC, carry + st.say);
+    CTL.innerHTML = '<p class="howto">Use the bench picture. Drag the apparatus, or tap it and then tap where it goes.</p>';
+  } else if (st.type === "choice") renderChoice(st, carry);
+  else if (st.type === "refill") renderChoice(refillChoice(st), carry);
+  else if (st.type === "action") {
+    coach(BC, carry + "Set up the next titration.");
+    CTL.innerHTML = '<button class="btn teal" id="actBtn" type="button" style="width:100%">' + st.btn + "</button>";
+    $("actBtn").addEventListener("click", function () { st.ok(); Sound.pop(); advance(); });
+  }
+  else if (st.type === "read") renderRead(st, carry);
+  else if (st.type === "filler") renderFiller(st, carry);
+  else if (st.type === "titrate") renderTitrate(st, carry);
+}
+function advance() { var st = G.steps[G.si]; if (st && st.type !== "action") checkpoint(stepKey(st), !G.stepWrong); G.si++; runStep(); }
+
+/* ---- choices ---- */
+function renderChoice(st, carry) {
+  var opts = shuffle(st.opts), lab = G.mode === "lab";
+  coach(BC, (carry || "") + (st.say || (lab ? "Choose the right thing to do." : "Quick! Choose.")));
+  CTL.innerHTML = '<p class="q">' + st.q + '</p><div class="opts">' + opts.map(function (o, i) { return '<button class="opt" type="button" data-i="' + i + '">' + o.t + "</button>"; }).join("") + '</div><div id="chNext"></div>';
+  CTL.querySelectorAll(".opt").forEach(function (b) {
+    b.addEventListener("click", function () {
+      var o = opts[+b.getAttribute("data-i")];
+      if (b.classList.contains("no") || CTL.querySelector(".opt.yes")) return;
+      if (o.ok) {
+        b.classList.add("yes"); Sound.ok();
+        if (st.ok) st.ok(o);
+        renderScene();
+        if (lab) {
+          coach(BC, "✓ " + o.why, "good");
+          $("chNext").innerHTML = '<button class="btn teal" type="button" id="chGo">Next ▸</button>';
+          $("chGo").addEventListener("click", advance); $("chGo").focus();
+        } else setTimeout(advance, 450);
+      } else {
+        b.classList.add("no"); G.stepWrong = true; mistake(st.key || st.t);
+        coach(BC, "✗ " + o.why, "warn");
+      }
+    });
+  });
+}
+function refillChoice(st) {
+  var cur = S.burLvl, left = 1000 - cur, need = roughDrops() + 20, enough = left >= need && !S.empty;
+  return { key: "Enough acid in the burette?", t: st.t,
+    q: "Your rough titre was " + f2(roughDrops()) + " cm³. Look at the burette. Is there enough acid left for this titration?",
+    say: G.mode === "lab" ? "A burette holds 50.00 cm³. Check the level before you start." : null,
+    opts: [
+      { t: "Refill the burette with acid (and remove the funnel)", ok: true, why: "Topped up. Plenty of acid for this titration." },
+      { t: "Carry on from the current reading", ok: enough, why: enough ? "There's enough acid left, so carrying on is fine." : "Only about " + (left * 0.05).toFixed(1) + " cm³ is left, but you need about " + f2(roughDrops()) + " cm³. It would run out!" }],
+    ok: function (o) { if (/^Refill/.test(o.t)) { S.burLvl = rint(0, 20); S.bubble = false; } } };
+}
+
+/* ---- the scene ---- */
+var MAG = { x: 445, y: 232, r: 105 };
+var BB = { burette: [0, 0, 44, 398], pipette: [0, 0, 40, 232], filler: [-4, 0, 66, 92], funnel: [0, 0, 60, 60], tile: [0, 0, 100, 11], flask: [0, 0, 90, 65], cyl: [0, 0, 30, 104], beaker: [0, 0, 60, 66] };
+var SLOTS = {
+  side: { area: [330, 18, 224, 476], burette: [340, 50, 204, 40, -90], pipette: [340, 100, 204, 46, -90], filler: [342, 168, 62, 96], funnel: [414, 182, 60, 62], tile: [482, 200, 62, 26],
+    flask: [342, 318, 98, 72], cyl: [452, 290, 38, 116], beaker: [496, 318, 50, 64] },
+  bottom: { area: [6, 540, 318, 156], burette: [12, 554, 232, 38, -90], funnel: [256, 552, 56, 44], pipette: [12, 600, 180, 36, -90], tile: [200, 608, 64, 22], cyl: [276, 600, 34, 90],
+    flask: [14, 646, 76, 46], filler: [104, 642, 42, 52], beaker: [162, 646, 48, 46] }
+};
+var SHELF_ART = { burette: function () { return artBurette({}); }, pipette: function () { return artPipette({}); }, filler: function () { return artFiller({}); }, funnel: artFunnel, tile: artTile,
+  flask: function () { return artFlask({ h: flaskH(), col: flaskCol() }); }, cyl: artCylinder, beaker: function () { return artBeaker("", null); } };
+function place(sl, bb, inner) {
+  var bw = bb[2] - bb[0], bh = bb[3] - bb[1], rot = sl[4] || 0, rw = rot ? bh : bw, rh = rot ? bw : bh, sc = Math.min(sl[2] / rw, sl[3] / rh);
+  return '<g transform="translate(' + (sl[0] + sl[2] / 2) + " " + (sl[1] + sl[3] / 2) + ")" + (rot ? " rotate(" + rot + ")" : "") + " scale(" + sc.toFixed(3) + ") translate(" + (-bb[0] - bw / 2) + " " + (-bb[1] - bh / 2) + ')">' + inner + "</g>";
+}
+function curView() { var st = G.steps[G.si]; return st ? st.view : "titrate"; }
+function layoutMode() { var w = SCENE.parentNode.clientWidth || 600; return w >= 500 ? "side" : "bottom"; }
+function zones() {
+  var v = curView(), z = [];
+  if (v === "stand") {
+    z.push({ id: "clamp", x: 145, y: 215, r: 52 });
+    if (S.burette === "clamp") z.push({ id: "top", x: 145, y: 36, r: 40 });
+    z.push({ id: "under", x: 145, y: 452, r: 60 });
+  } else if (v === "pip") {
+    if (S.pipette === "beaker" && S.filler !== "pipette") z.push({ id: "pipTop", x: 120, y: 184, r: 42 });
+    if (S.flask.at !== "pip") z.push({ id: "flaskPip", x: 250, y: 462, r: 56 });
+  }
+  return z;
+}
+function flaskH() { return S.flask.alk ? 14 * S.flask.vol + S.flask.add * 0.015 : 0; }
+function flaskCol() {
+  if (!S.flask.alk) return ALKC;
+  var ind = S.flask.ind; if (!ind) return ALKC;
+  var a = S.flask.add, k1 = G.k1, I = IND[ind];
+  if (a < k1) return I.base;
+  if (ind === "mo" && a > k1 + 1) return I.over;
+  return I.end;
+}
+function standSVG() {
+  return '<rect x="25" y="486" width="210" height="14" rx="3" fill="#59666a" stroke="' + INK + '" stroke-width="2"/><rect x="45" y="24" width="9" height="462" fill="#8b9a9c" stroke="' + INK + '" stroke-width="2"/>' +
+    '<rect x="41" y="206" width="17" height="16" rx="2" fill="#59666a" stroke="' + INK + '" stroke-width="2"/><rect x="58" y="210" width="74" height="7" fill="#8b9a9c" stroke="' + INK + '" stroke-width="2"/>' +
+    '<rect x="130" y="198" width="7" height="32" rx="2" fill="' + ORA + '" stroke="' + INK + '" stroke-width="2"/><rect x="153" y="198" width="7" height="32" rx="2" fill="' + ORA + '" stroke="' + INK + '" stroke-width="2"/>';
+}
+function flaskGroup(x, y, swirlable) {
+  return '<g id="flaskG"' + (swirlable ? ' data-swirl="1" style="cursor:ew-resize"' : "") + ">" + (swirlable ? '<rect x="' + (x - 10) + '" y="' + (y - 10) + '" width="110" height="80" fill="rgba(255,255,255,0)"/>' : "") +
+    g(x, y, artFlask({ h: flaskH(), col: flaskCol(), ids: true, fcol: S.flask.ind === "mo" ? COL.moOver : COL.ppEnd })) + "</g>";
+}
+function magSVG() {
+  var cx = MAG.x, cy = MAG.y, r = MAG.r, k = r / 105, full = S.burLvl != null, s = "", fs = Math.max(11, 12 * k);
+  function n(v) { return (v * k).toFixed(1); }
+  s += '<path d="M152 390 L' + (cx - r * 0.96) + " " + (cy + r * 0.28) + " M152 404 L" + (cx - r * 0.66) + " " + (cy + r * 0.75) + '" stroke="#9fb3b3" stroke-width="2" stroke-dasharray="5 4" fill="none"/>';
+  s += '<defs><clipPath id="magClip"><circle cx="' + cx + '" cy="' + cy + '" r="' + (r - 2) + '"/></clipPath></defs><circle cx="' + cx + '" cy="' + cy + '" r="' + r + '" fill="#fff"/>';
+  s += '<g clip-path="url(#magClip)"><rect x="' + (cx - 24 * k) + '" y="' + (cy - r) + '" width="' + n(48) + '" height="' + (r - 16 * k) + '" fill="' + (full ? ACIDC : GLASS) + '" stroke="' + INK + '" stroke-width="3"/>' +
+    '<path d="M' + (cx - 24 * k) + " " + (cy - 16 * k) + " L" + (cx - 10 * k) + " " + (cy + 4 * k) + " L" + (cx - 10 * k) + " " + (cy + r) + " L" + (cx + 10 * k) + " " + (cy + r) + " L" + (cx + 10 * k) + " " + (cy + 4 * k) + " L" + (cx + 24 * k) + " " + (cy - 16 * k) + '" fill="' + (full ? ACIDC : GLASS) + '" stroke="' + INK + '" stroke-width="3" stroke-linejoin="round"/>' +
+    '<rect id="magStream" x="' + (cx - 3 * k) + '" y="' + (cy + 24 * k) + '" width="' + n(6) + '" height="' + r + '" fill="#7cc4d1" opacity="0"/><circle id="magDrop" class="drop" cx="' + cx + '" cy="' + (cy + 40 * k) + '" r="' + n(5) + '" fill="#7cc4d1" stroke="' + INK + '" stroke-width="1"/></g>';
+  s += '<g id="handle" data-handle="1" tabindex="0" role="slider" aria-label="Burette tap" aria-valuemin="0" aria-valuemax="90" style="cursor:grab" transform="rotate(' + S.tap + " " + cx + " " + cy + ')">' +
+    '<rect x="' + (cx - 95 * k) + '" y="' + (cy - 34 * k) + '" width="' + n(190) + '" height="' + n(68) + '" fill="rgba(255,255,255,0)"/>' +
+    '<rect x="' + (cx - 82 * k) + '" y="' + (cy - 12 * k) + '" width="' + n(164) + '" height="' + n(24) + '" rx="' + n(12) + '" fill="' + TEAL + '" stroke="' + INK + '" stroke-width="3"/>' +
+    '<circle cx="' + cx + '" cy="' + cy + '" r="' + n(24) + '" fill="#fff" stroke="' + INK + '" stroke-width="3"/><rect x="' + (cx - 19 * k) + '" y="' + (cy - 4 * k) + '" width="' + n(38) + '" height="' + n(8) + '" rx="3" fill="' + (full ? "#7cc4d1" : GLASS) + '" stroke="' + INK + '" stroke-width="1.4"/></g>';
+  s += '<circle cx="' + cx + '" cy="' + cy + '" r="' + r + '" fill="none" stroke="' + INK + '" stroke-width="3.5"/>';
+  s += '<text id="magState" x="' + cx + '" y="' + (cy - r - 10) + '" text-anchor="middle" font-size="' + (fs + 2) + '" font-weight="800" fill="' + INK + '"></text>';
+  s += '<text x="' + cx + '" y="' + (cy + r + fs + 6) + '" text-anchor="middle" font-size="' + fs + '" font-weight="700" fill="#5a6b6b">Drag the tap to turn it</text>' +
+    '<text x="' + cx + '" y="' + (cy + r + 2 * fs + 8) + '" text-anchor="middle" font-size="' + fs + '" font-weight="700" fill="#5a6b6b">' + (k < 0.9 ? "— closed · | open" : "horizontal = closed · vertical = open") + "</text>";
+  return s;
+}
+function hitRect(sl) { return '<rect class="hit" x="' + sl[0] + '" y="' + sl[1] + '" width="' + sl[2] + '" height="' + sl[3] + '" rx="8" fill="rgba(255,255,255,0)"/>'; }
+function renderScene() {
+  if (!S) return;
+  var view = curView(), lay = layoutMode(), st = G.steps[G.si] || {}, lab = G.mode === "lab", s = "";
+  var W = lay === "side" ? 560 : 330, H = lay === "side" ? 530 : (view === "titrate" ? 530 : 700);
+  MAG = lay === "side" ? { x: 445, y: 232, r: 105 } : { x: 252, y: 150, r: 74 };
+  S.lay = lay; S.view = view;
+  SCENE.setAttribute("viewBox", "0 0 " + W + " " + H);
+  s += '<rect x="0" y="500" width="' + W + '" height="30" fill="#f5e6cc" stroke="' + INK + '" stroke-width="2"/>';
+  if (view === "stand" || view === "titrate") {
+    s += standSVG();
+    if (S.tile === "under") s += g(95, 476, artTile());
+    if (S.burette === "clamp") s += g(125, 40, artBurette({ lvl: S.burLvl, bubble: S.bubble, tap: S.tap, ids: true }));
+    if (S.funnel === "top") s += g(115, 4, artFunnel());
+    if (S.flask.at === "under") s += flaskGroup(100, 413, view === "titrate");
+    s += '<circle id="drop" class="drop" cx="145" cy="438" r="2.6" fill="#9fd3dc" stroke="' + INK + '" stroke-width=".8"/><rect id="stream" x="143.8" y="436" width="2.4" height="20" fill="#9fd3dc" opacity="0"/>';
+    if (view === "titrate") s += '<text x="145" y="521" text-anchor="middle" font-size="12" font-weight="800" fill="#5a6b6b">⟷ drag the flask to swirl</text>' + magSVG();
+  } else if (view === "pip") {
+    s += '<text x="245" y="40" text-anchor="middle" font-size="13" font-weight="800" letter-spacing="1" fill="#5a6b6b">PIPETTE STATION</text>';
+    s += g(63, 372, artBeaker("NaOH(aq)", ALKC), " scale(1.9)");
+    if (S.flask.at === "pip") s += flaskGroup(205, 436, false);
+    if (S.pipette === "beaker") {
+      var px = S.pipPos === "flask" ? 225 : 95, py = S.pipPos === "flask" ? 150 : (S.lift ? 112 : 200);
+      s += g(px, py, artPipette({ lvl: S.pV, ids: true }), " scale(1.25)");
+      if (S.filler === "pipette") s += g(px + 25 - 27, py - 79, artFiller({ air: S.air, ids: true }), " scale(.9)");
+    }
+  }
+  var showAll = !!S.sel || !!S.dragging;
+  zones().forEach(function (z) {
+    var on = st.type === "drag" && ((lab && z.id === st.zone) || showAll);
+    s += '<circle class="zone' + (on ? " show" : "") + '" data-zone="' + z.id + '" cx="' + z.x + '" cy="' + z.y + '" r="' + z.r + '"/>';
+  });
+  if (view !== "titrate") {
+    var SL = SLOTS[lay], a = SL.area;
+    s += '<rect x="' + a[0] + '" y="' + a[1] + '" width="' + a[2] + '" height="' + a[3] + '" rx="16" fill="#f3fbfa" stroke="#b9d6d4" stroke-width="2" stroke-dasharray="8 6"/>';
+    if (lay === "side") s += '<text x="' + (a[0] + a[2] / 2) + '" y="' + (a[1] + 20) + '" text-anchor="middle" font-size="11" font-weight="800" letter-spacing="1.5" fill="#5a6b6b">APPARATUS</text>';
+    var here = { burette: S.burette === "tray", pipette: S.pipette === "tray", filler: S.filler === "tray", funnel: S.funnel === "tray", tile: S.tile === "tray", flask: S.flask.at === "tray", cyl: true, beaker: true };
+    Object.keys(here).forEach(function (id) {
+      if (!here[id]) return;
+      s += '<g data-item="' + id + '"' + (S.sel === id ? ' class="sel"' : "") + ">" + hitRect(SL[id]) + place(SL[id], BB[id], SHELF_ART[id]()) + "</g>";
+    });
+  }
+  SCENE.innerHTML = s;
+  updateLive();
+}
+function updateLive() {
+  if (!S) return;
+  var b = $("bLiq");
+  if (b && S.burLvl != null) { var y = Math.max(1, 15 + S.burLvl * 0.3); b.setAttribute("y", y); b.setAttribute("height", 345 - y); }
+  var h = flaskH(), f = $("fLiq");
+  if (f) { f.setAttribute("y", 64 - h); f.setAttribute("height", h + 2); f.setAttribute("fill", flaskCol()); var fl = $("flash"); if (fl) fl.setAttribute("cy", 64 - h + 4); }
+  var ck = $("cock"); if (ck) ck.setAttribute("transform", "rotate(" + S.tap + " 20 356.5)");
+  var hd = $("handle"); if (hd) { hd.setAttribute("transform", "rotate(" + S.tap + " " + MAG.x + " " + MAG.y + ")"); hd.setAttribute("aria-valuenow", Math.round(S.tap)); }
+  var ms = $("magState"); if (ms) { ms.textContent = S.tap < 8 ? "Tap CLOSED" : S.tap < 40 ? "Tap slightly open: drop by drop" : "Tap OPEN: fast flow"; ms.setAttribute("fill", S.tap < 8 ? INK : S.tap < 40 ? "#057A7A" : "#c2410c"); }
+  var fast = S.flow === "fast";
+  var sr = $("stream"); if (sr) { sr.setAttribute("opacity", fast ? 0.9 : 0); sr.setAttribute("height", Math.max(4, 477 - h - 436)); }
+  var mst = $("magStream"); if (mst) mst.setAttribute("opacity", fast ? 0.95 : 0);
+  var pl = $("pLiq"); if (pl) { pl.setAttribute("y", S.pV); pl.setAttribute("height", Math.max(0, 240 - S.pV)); }
+  document.querySelectorAll("#fBulb").forEach(function (bu) { var ry = 20 * (0.85 + 0.15 * S.air); bu.setAttribute("rx", (20 * (0.5 + 0.5 * S.air)).toFixed(2)); bu.setAttribute("ry", ry.toFixed(2)); bu.setAttribute("cy", (48 - ry).toFixed(2)); });
+}
+function flashTick() {
+  var el = $("flash"); if (!el) return;
+  var op = S.flashDur ? Math.max(0, 1 - (Date.now() - S.flashT) / S.flashDur) : 0;
+  el.setAttribute("opacity", (op * 0.95).toFixed(2));
+}
+window.addEventListener("resize", function () { if (G && G.phase === "bench" && S && !drag && !turning && layoutMode() !== S.lay) renderScene(); });
+
+/* ---- pointer: drag apparatus, turn the tap, swirl the flask ---- */
+var drag = null, turning = false, sw = null;
+function svgPt(e) { var pt = SCENE.createSVGPoint(); pt.x = e.clientX; pt.y = e.clientY; return pt.matrixTransform(SCENE.getScreenCTM().inverse()); }
+function zoneAt(p) { var best = null, bd = 1e9; zones().forEach(function (z) { var d = Math.hypot(p.x - z.x, p.y - z.y); if (d < z.r && d < bd) { bd = d; best = z.id; } }); return best; }
+var DETENTS = [0, 30, 90];
+function tapAng(p) { return Math.atan2(p.y - MAG.y, p.x - MAG.x) * 180 / Math.PI; }
+function setTap(t) { if (t !== S.tap) { S.tap = t; Sound.tone(t ? 700 : 420, "square", .04, .05); updateLive(); } }
+function turnTo(p) {
+  var a = tapAng(p), d = a - turning.last;
+  while (d > 90) d -= 180; while (d < -90) d += 180;
+  turning.last = a; turning.cont = Math.max(-15, Math.min(105, turning.cont + d));
+  var c = turning.cont, t = S.tap;
+  // snap with a little "stickiness" so the tap stays put near each position
+  if (t === 0 && c > 18) t = c > 62 ? 90 : 30;
+  else if (t === 30 && (c < 12 || c > 62)) t = c < 12 ? 0 : 90;
+  else if (t === 90 && c < 55) t = c < 12 ? 0 : 30;
+  setTap(t);
+}
+SCENE.addEventListener("pointerdown", function (e) {
+  if (!G || G.phase !== "bench" || !S) return;
+  var st = G.steps[G.si] || {};
+  if (st.type === "titrate") {
+    if (e.target.closest("[data-handle]")) { turning = { last: tapAng(svgPt(e)), cont: S.tap }; try { SCENE.setPointerCapture(e.pointerId); } catch (x) {} e.preventDefault(); return; }
+    if (e.target.closest("[data-swirl]")) { sw = { x0: svgPt(e).x, side: null }; try { SCENE.setPointerCapture(e.pointerId); } catch (x) {} e.preventDefault(); return; }
+    return;
+  }
+  var it = e.target.closest("[data-item]"), zn = e.target.closest("[data-zone]");
+  if (st.type !== "drag") { if (it) coach(BC, "Finish this step first: " + st.t + ".", ""); return; }
+  if (it) { drag = { id: it.getAttribute("data-item"), el: it, p0: svgPt(e), moved: false }; try { SCENE.setPointerCapture(e.pointerId); } catch (x) {} e.preventDefault(); return; }
+  if (zn && S.sel) dropOn(S.sel, zn.getAttribute("data-zone"));
+});
+SCENE.addEventListener("pointermove", function (e) {
+  if (turning) { turnTo(svgPt(e)); return; }
+  if (sw) {
+    var dx = Math.max(-7, Math.min(7, svgPt(e).x - sw.x0)), fg = $("flaskG");
+    if (fg) fg.setAttribute("transform", "translate(" + dx.toFixed(1) + " 0)");
+    if (dx >= 5 && sw.side !== "R") { if (sw.side) swirled(); sw.side = "R"; }
+    if (dx <= -5 && sw.side !== "L") { if (sw.side) swirled(); sw.side = "L"; }
+    return;
+  }
+  if (!drag) return;
+  var p = svgPt(e), ddx = p.x - drag.p0.x, ddy = p.y - drag.p0.y;
+  if (!drag.moved && Math.hypot(ddx, ddy) > 6) {
+    drag.moved = true; S.dragging = true; S.sel = null;
+    SCENE.querySelectorAll(".zone").forEach(function (z) { z.classList.add("show"); });
+    drag.el.classList.add("dragging"); drag.el.parentNode.appendChild(drag.el);
+  }
+  if (drag.moved) drag.el.setAttribute("transform", "translate(" + ddx + " " + ddy + ")");
+});
+function endPointer(e, cancel) {
+  if (turning) { turning = false; return; }
+  if (sw) { sw = null; var fg = $("flaskG"); if (fg) fg.setAttribute("transform", "translate(0 0)"); return; }
+  if (!drag) return;
+  var d = drag; drag = null; S.dragging = false;
+  if (d.moved) { var z = cancel ? null : zoneAt(svgPt(e)); if (z) dropOn(d.id, z); else renderScene(); }
+  else { S.sel = S.sel === d.id ? null : d.id; renderScene(); if (S.sel) coach(BC, "Now tap where it should go."); }
+}
+SCENE.addEventListener("pointerup", function (e) { endPointer(e, false); });
+SCENE.addEventListener("pointercancel", function (e) { endPointer(e, true); });
+SCENE.addEventListener("keydown", function (e) {
+  if (!e.target.closest || !e.target.closest("[data-handle]")) return;
+  if (e.key === "ArrowUp" || e.key === "ArrowRight") { setTap(DETENTS[Math.min(2, DETENTS.indexOf(S.tap) + 1)]); e.preventDefault(); }
+  if (e.key === "ArrowDown" || e.key === "ArrowLeft") { setTap(DETENTS[Math.max(0, DETENTS.indexOf(S.tap) - 1)]); e.preventDefault(); }
+});
+function dropOn(item, zone) {
+  var st = G.steps[G.si] || {};
+  S.sel = null;
+  if (st.type !== "drag") { renderScene(); return; }
+  if (item === st.item && zone === st.zone) { st.ok(); Sound.ok(); advance(); return; }
+  if (item !== st.item) {
+    G.stepWrong = true; mistake(st.key || st.t);
+    coach(BC, "✗ That's the <b>" + NAME[item] + "</b>. " + st.say, "warn");
+  } else coach(BC, "Right apparatus, wrong place. " + st.say, "warn");
+  renderScene();
+}
+
+/* ---- pipette filler: A (air out), S (suck up), E (empty) ---- */
+function renderFiller(st, carry) {
+  var fill = st.mode === "fill", lab = G.mode === "lab";
+  if (fill) { S.pV = 232; S.air = 1; S.pAbove = false; S.lift = false; } else { S.pipPos = "flask"; S.flask.alk = true; S.flask.vol = 0; S.flask.add = 0; renderScene(); }
+  coach(BC, (carry || "") + (fill
+    ? (lab ? "Use the zoomed-in filler. <b>Hold A</b> to squeeze the air out of the bulb. <b>Hold S</b> to suck the alkali up past the line. Then lift the pipette out of the liquid by <b>tapping or holding E</b> to let it down until the <b>bottom of the meniscus</b> sits on the line." : "Fill the pipette to the line using A, S and E.")
+    : (lab ? "The pipette is over the flask. <b>Hold E</b> to let the alkali run into the conical flask." : "Empty the pipette into the flask.")));
+  CTL.innerHTML = '<div class="zoomrow"><div class="zoom fz"><svg id="fz" viewBox="-30 -16 128 116" aria-label="Zoomed-in pipette filler">' + artFiller({ air: S.air, big: true, ids: true }) + "</svg></div>" +
+    (fill ? '<div class="zoom"><svg id="pz" viewBox="0 0 150 200" aria-label="Zoomed pipette mark"></svg></div>' : "") + "</div>" +
+    '<p class="howto">Hold a valve on the filler, or hold the <b>A</b>, <b>S</b> or <b>E</b> key.</p>' +
+    (fill ? '<button class="btn teal" id="pDone" type="button" style="width:100%">The meniscus is on the line ✓</button>' : "") + '<p class="fbk" id="pFb"></p>';
+  if (fill) drawPZ();
+  var fz = $("fz");
+  function setValve(v) { S.valve = v; fz.querySelectorAll("[data-valve]").forEach(function (gv) { gv.classList.toggle("on", gv.getAttribute("data-valve") === v); }); if (v) fillerTick(st); }
+  fz.addEventListener("pointerdown", function (e) { var gv = e.target.closest("[data-valve]"); if (!gv) return; e.preventDefault(); try { fz.setPointerCapture(e.pointerId); } catch (x) {} setValve(gv.getAttribute("data-valve")); });
+  ["pointerup", "pointercancel", "lostpointercapture"].forEach(function (ev) { fz.addEventListener(ev, function () { setValve(null); }); });
+  fz.addEventListener("contextmenu", function (e) { e.preventDefault(); });
+  function kd(e) { var k = e.key.toUpperCase(); if ((k === "A" || k === "S" || k === "E") && !e.repeat && !/INPUT|TEXTAREA/.test(document.activeElement.tagName)) { e.preventDefault(); setValve(k); } }
+  function ku(e) { if (e.key.toUpperCase() === S.valve) setValve(null); }
+  document.addEventListener("keydown", kd); document.addEventListener("keyup", ku);
+  HOLDS.push(function () { document.removeEventListener("keydown", kd); document.removeEventListener("keyup", ku); });
+  LOOP = setInterval(function () { if (S.valve) fillerTick(st); }, 50);
+  if (fill) $("pDone").addEventListener("click", function () {
+    var pL = (40 - S.pV) * 2.5;
+    if (!S.pAbove) { fb("Suck the alkali up <b>above</b> the line first (A, then S), then let it down to the line with E.", "bad"); return; }
+    if (pL > 2) { G.stepWrong = true; mistake("Pipette meniscus"); fb("The bottom of the meniscus is still above the line. Tap E to let a little more out.", "bad"); return; }
+    if (pL < -2) { G.stepWrong = true; mistake("Pipette meniscus"); fb("Too low: the meniscus is below the line. Squeeze A, then S to suck it up again, and let it down more slowly.", "bad"); return; }
+    setValve(null); S.pV = 40; S.lift = true; Sound.ok(); G.carry = "✓ Exactly 25.0 cm³ of alkali in the pipette."; advance();
+  });
+}
+function fb(t, c) { var el = $("pFb"); if (el) { el.innerHTML = t; el.className = "fbk " + (c || ""); } }
+function fillerTick(st) {
+  var v = S.valve;
+  if (st.mode === "fill") {
+    if (v === "A") { S.air = Math.max(0, S.air - 0.06); if (S.air === 0) fb("Bulb squeezed flat. Now hold S.", ""); }
+    else if (v === "S") {
+      if (S.air > 0.97) fb("Nothing happens: the bulb is full of air. Hold <b>A</b> first to squeeze the air out.", "bad");
+      else {
+        if (S.lift) { S.lift = false; renderScene(); } S.pV -= 4; S.air = Math.min(1, S.air + 0.016); fb("", "");
+        if (S.pV < 37) S.pAbove = true;
+        if (S.pV < 0) { S.valve = null; S.pV = 232; S.air = 1; S.pAbove = false; G.stepWrong = true; mistake("Pipette overfilled"); fb("Too far! Alkali got sucked into the filler. Empty the pipette and start again.", "bad"); }
+      }
+    } else if (v === "E") { if (!S.lift) { S.lift = true; renderScene(); fb("Pipette lifted so its tip is just above the alkali. Let the liquid down to the line.", ""); } S.pV = Math.min(232, S.pV + 0.25); }
+    drawPZ();
+  } else {
+    if (v === "E") {
+      S.pV = Math.min(226, S.pV + 3); S.flask.vol = Math.min(1, (S.pV - 40) / 186);
+      if (S.pV >= 226) { S.valve = null; Sound.ok(); G.carry = "✓ All 25.0 cm³ of alkali is in the flask."; advance(); return; }
+    } else fb("That valve won't empty the pipette. Use <b>E</b>.", "bad");
+  }
+  updateLive();
+}
+function artFillerBadge(x, y, L) { return '<circle cx="' + x + '" cy="' + y + '" r="8" fill="#fff" stroke="' + INK + '" stroke-width="2"/><text x="' + x + '" y="' + (y + 4) + '" text-anchor="middle" font-size="11" font-weight="800" fill="' + INK + '">' + L + "</text>"; }
+function drawPZ() {
+  var el = $("pz"); if (!el) return;
+  var y = 100 - (40 - S.pV) * 2.5, s = '<rect width="150" height="200" fill="#fff"/><rect x="60" y="-5" width="30" height="210" fill="' + GLASS + '"/>';
+  if (y < 205) s += '<path d="M60 ' + (y - 5) + " Q75 " + (y + 5) + " 90 " + (y - 5) + ' L90 205 L60 205 Z" fill="#bfe1e7"/><path d="M60 ' + (y - 5) + " Q75 " + (y + 5) + " 90 " + (y - 5) + '" fill="none" stroke="#3d7f8a" stroke-width="2"/>';
+  s += '<line x1="60" y1="-5" x2="60" y2="205" stroke="' + INK + '" stroke-width="2.5"/><line x1="90" y1="-5" x2="90" y2="205" stroke="' + INK + '" stroke-width="2.5"/>' +
+    '<line x1="54" y1="100" x2="96" y2="100" stroke="' + INK + '" stroke-width="2.2"/><text x="100" y="97" font-size="10" font-weight="800" fill="' + INK + '">line</text>' +
+    '<line x1="24" y1="100" x2="52" y2="100" stroke="' + ORA + '" stroke-width="1.6" stroke-dasharray="3 3"/><text x="4" y="105" font-size="15">👁</text>';
+  el.innerHTML = s;
+}
+
+/* ---- burette readings ---- */
+function zoomSVG(lvl) {
+  var v = lvl * 0.05, Y = function (u) { return 110 + (u - v) * 50; }, s = '<rect width="150" height="220" fill="#fff"/><rect x="40" y="-5" width="70" height="230" fill="' + GLASS + '"/>';
+  var my = Y(v);
+  s += '<path d="M40 ' + (my - 6) + " Q75 " + (my + 6) + " 110 " + (my - 6) + ' L110 225 L40 225 Z" fill="#bfe1e7"/><path d="M40 ' + (my - 6) + " Q75 " + (my + 6) + " 110 " + (my - 6) + '" fill="none" stroke="#3d7f8a" stroke-width="2.2"/>';
+  for (var t = Math.ceil((v - 2.4) * 10); t <= Math.floor((v + 2.4) * 10); t++) {
+    if (t < 0 || t > 500) continue;
+    var yy = Y(t / 10), len = t % 10 === 0 ? 26 : t % 5 === 0 ? 18 : 11;
+    s += '<line x1="40" y1="' + yy + '" x2="' + (40 + len) + '" y2="' + yy + '" stroke="' + INK + '" stroke-width="' + (t % 10 === 0 ? 1.8 : 1.1) + '"/>';
+    if (t % 10 === 0) s += '<text x="72" y="' + (yy + 5) + '" font-size="15" font-weight="800" fill="' + INK + '">' + (t / 10) + "</text>";
+  }
+  s += '<line x1="40" y1="-5" x2="40" y2="225" stroke="' + INK + '" stroke-width="2.5"/><line x1="110" y1="-5" x2="110" y2="225" stroke="' + INK + '" stroke-width="2.5"/>';
+  s += '<text x="6" y="' + (my + 5) + '" font-size="15">👁</text><line x1="24" y1="' + my + '" x2="40" y2="' + my + '" stroke="' + ORA + '" stroke-width="1.6" stroke-dasharray="3 3"/>';
+  return s;
+}
+function renderRead(st, carry) {
+  var val = S.burLvl, which = st.which, lab = G.mode === "lab", r = G.run;
+  coach(BC, (carry || "") + (lab ? "Read the <b>" + (which === "init" ? "initial" : "final") + "</b> burette reading at the <b>bottom of the meniscus</b>, to 2 decimal places (it ends in 0 or 5). Numbers get bigger going <b>down</b>." : "Record the " + (which === "init" ? "initial" : "final") + " reading."));
+  CTL.innerHTML = '<div class="zoomrow"><div class="zoom"><svg viewBox="0 0 150 220" aria-label="Zoomed burette scale">' + zoomSVG(val) + '</svg></div><div class="readin">' +
+    '<label class="numin">' + (which === "init" ? "Initial" : "Final") + ' reading <input id="rIn" type="text" inputmode="decimal" autocomplete="off" placeholder="0.00"> cm³</label>' +
+    '<button class="btn teal" id="rChk" type="button">Record it</button><p class="fbk" id="rFb"></p><div id="rNext"></div></div></div>';
+  function record() { if (which === "init") { r.initLvl = val; r.init = f2(val); } else { r.finLvl = val; r.fin = f2(val); } renderBTable(); }
+  function check() {
+    if (CTL.querySelector("#rGo")) return;
+    var s = $("rIn").value.trim(), v = parseFloat(s), ans = val * 0.05;
+    if (!s || isNaN(v)) { $("rIn").focus(); return; }
+    var exact = Math.abs(v - ans) < 0.001;
+    if (exact && /^\d{1,2}\.\d{2}$/.test(s)) { record(); Sound.ok(); G.carry = "✓ Recorded " + f2(val) + " cm³."; advance(); return; }
+    st.tries++; G.stepWrong = true; mistake(exact ? "Burette reading: 2 d.p." : "Burette reading");
+    var msg = exact ? "Right value, but burette readings are written to 2 decimal places, e.g. 7.50 not 7.5." :
+      Math.abs(v - ans) <= 0.051 ? "Close! Look at the bottom of the meniscus. Halfway between two small lines is 0.05." :
+      "Not quite. Find the whole number just above the meniscus, then count the small lines (0.10 cm³ each) down to the bottom of the meniscus.";
+    if (st.tries >= 2) {
+      msg = "It reads <b>" + f2(val) + " cm³</b>. I've written that in your table."; record();
+      $("rNext").innerHTML = '<button class="btn" id="rGo" type="button">Next ▸</button>'; $("rGo").addEventListener("click", advance);
+    }
+    $("rFb").innerHTML = msg; $("rFb").className = "fbk bad"; coach(BC, msg, "warn");
+  }
+  $("rChk").addEventListener("click", check);
+  $("rIn").addEventListener("keydown", function (e) { if (e.key === "Enter") check(); });
+}
+function renderBTable() {
+  var st = G.steps[G.si] || {}, ci = G.runs.length - 1;
+  function cell(i, row) { var r = G.runs[i], v = row === "fin" ? r.fin : r.init, isCur = i === ci && st.type === "read" && st.which === row; return '<td' + (isCur ? ' class="cur"' : "") + ">" + (v || "") + "</td>"; }
+  var h = '<table class="ttable"><tr><th>Titration</th>' + G.runs.map(function (r) { return "<th>" + r.label + "</th>"; }).join("") + "</tr>";
+  h += '<tr><th class="rowh">Final reading / cm³</th>' + G.runs.map(function (r, i) { return cell(i, "fin"); }).join("") + "</tr>";
+  h += '<tr><th class="rowh">Initial reading / cm³</th>' + G.runs.map(function (r, i) { return cell(i, "init"); }).join("") + "</tr></table>";
+  $("bTable").innerHTML = h;
+}
+
+/* ---- titrating ---- */
+function renderTitrate(st, carry) {
+  var r = G.run, lab = G.mode === "lab", I = IND[S.flask.ind];
+  S.flashDur = 0; S.tap = 0; S.acc = 0; S.flow = null; updateLive();
+  var say = r.rough
+    ? (lab ? "<b>Rough titration.</b> Turn the tap open and add acid quite quickly, swirling the flask, until the colour changes from " + I.change + ". Close the tap, then press stop." : "Rough titration: find roughly where the end-point is.")
+    : (lab ? "<b>Accurate titration " + r.label + ".</b> Run in acid quickly to about 1–2 cm³ less than your rough titre (" + f2(roughDrops()) + " cm³). Then turn the tap only a little so it <b>drips</b>, swirling, until one drop changes the colour for good." : "Accurate titration " + r.label + ". Rough titre: " + f2(roughDrops()) + " cm³.");
+  coach(BC, (carry || "") + say);
+  CTL.innerHTML = '<p class="howto">Turn the tap in the zoomed-in view. It clicks into 3 positions: <b>horizontal = closed</b>, <b>slightly turned = drop by drop</b>, <b>vertical = fast flow</b>. Swirl by dragging the flask from side to side, or tap Swirl.</p>' +
+    '<div class="tap-row"><button class="btn pink" id="tSwirl" type="button">Swirl ⟷</button><button class="btn orange" id="tEnd" type="button">End-point: stop ✋</button></div>';
+  $("tSwirl").addEventListener("click", function () { swirled(); var fg = $("flaskG"); if (fg) { fg.classList.remove("slosh"); void fg.getBoundingClientRect(); fg.classList.add("slosh"); } });
+  $("tEnd").addEventListener("click", endPoint);
+  LOOP = setInterval(titrateTick, 50);
+}
+function titrateTick() {
+  var t = S.tap;
+  if (t < 8) { S.acc = 0; S.flow = null; }
+  else if (t < 40) { S.flow = "slow"; S.acc += 50 / 350; }
+  else { S.flow = "fast"; S.acc += 1.6; }
+  var n = Math.floor(S.acc);
+  if (n > 0) { S.acc -= n; addDrops(n, S.flow === "slow"); }
+  flashTick(); updateLive();
+}
+function addDrops(n, anim) {
+  if (S.empty) return;
+  for (var i = 0; i < n; i++) {
+    if (S.burLvl >= 1000) { burEmpty(); return; }
+    S.burLvl++; S.flask.add++;
+  }
+  var a = S.flask.add, k1 = G.k1;
+  if (a < k1 && a >= k1 - 30) { S.flashT = Date.now(); S.flashDur = 250 + 1500 * (1 - (k1 - a) / 30); }
+  if (anim) {
+    ["drop", "magDrop"].forEach(function (id) { var d = $(id); if (d) { d.classList.remove("fall"); void d.getBoundingClientRect(); d.classList.add("fall"); } });
+    Sound.drip();
+  }
+  updateLive();
+}
+function swirled() {
+  if (!G.run) return;
+  G.run.swirls++;
+  if (S.flashDur) S.flashDur = Math.min(S.flashDur, Date.now() - S.flashT + 150);
+  Sound.pop();
+}
+function burEmpty() {
+  if (LOOP) { clearInterval(LOOP); LOOP = null; }
+  S.empty = true; S.tap = 0; S.flow = null; updateLive();
+  G.stepWrong = true; mistake("Burette ran out");
+  coach(BC, "Oh no! The burette ran out at 50.00 cm³ before the end-point. You should have refilled it first. Let's repeat this titration.", "warn");
+  CTL.innerHTML = '<button class="btn teal" id="reGo" type="button">Repeat this titration ▸</button>';
+  $("reGo").addEventListener("click", function () { S.flask.alk = false; S.flask.vol = 0; S.flask.add = 0; startRun(true); });
+}
+function endPoint() {
+  var a = S.flask.add, k1 = G.k1, r = G.run;
+  if (S.tap >= 8) { coach(BC, "Close the tap first: turn it back to <b>horizontal</b>.", "warn"); Sound.bad(); return; }
+  if (a < k1) {
+    if (!r.early) { r.early = true; G.stepWrong = true; mistake("Stopped before the end-point"); } else Sound.bad();
+    coach(BC, "Not yet! The colour hasn't changed for good. " + (a >= k1 - 30 ? "Swirl, then let it drip one drop at a time." : "Keep adding acid."), "warn");
+    return;
+  }
+  if (LOOP) { clearInterval(LOOP); LOOP = null; }
+  S.flashDur = 0; flashTick();
+  var notes = [], over = (a - k1) * 0.05;
+  if (r.swirls === 0) { G.stepWrong = true; mistake("Did not swirl"); notes.push("Remember to swirl the flask as the acid goes in, so it mixes."); }
+  if (r.rough) notes.unshift("The colour has changed. That's your rough end-point.");
+  else if (a > k1 + 2) { r.over = true; G.stepWrong = true; mistake("Overshot the end-point"); notes.unshift("You went past the end-point by about " + over.toFixed(2) + " cm³, so this titre is too big. Record it anyway. You can leave it out of your average."); }
+  else notes.unshift(a === k1 ? "Spot on! A single drop changed the colour." : "Good. Just at the end-point.");
+  G.carry = (r.over || r.swirls === 0 ? "⚠ " : "✓ ") + notes.join(" ");
+  Sound.ok(); advance();
+}
+
+/* ---- after each run ---- */
+function accRuns() { return G.runs.filter(function (r) { return !r.rough && r.finLvl != null; }).map(function (r) { return { i: G.runs.indexOf(r), d: r.finLvl - r.initLvl }; }); }
+function validSets(acc) {
+  var s = acc.slice().sort(function (a, b) { return a.d - b.d; }), best = 0, sets = [];
+  for (var i = 0; i < s.length; i++) {
+    var w = []; for (var j = i; j < s.length && s[j].d - s[i].d <= 2; j++) w.push(s[j].i);
+    if (w.length > best) { best = w.length; sets = [w]; } else if (w.length === best) sets.push(w);
+  }
+  if (best >= 2) {
+    sets = sets.filter(function (w) { return !sets.some(function (o) { return o !== w && o.length > w.length && w.every(function (x) { return o.indexOf(x) >= 0; }); }); });
+    return { conc: true, sets: sets.map(function (w) { return w.slice().sort(); }) };
+  }
+  var md = 1e9, pairs = [];
+  for (var a = 0; a < s.length; a++) for (var b = a + 1; b < s.length; b++) { var d = s[b].d - s[a].d; if (d < md) { md = d; pairs = [[s[a].i, s[b].i]]; } else if (d === md) pairs.push([s[a].i, s[b].i]); }
+  return { conc: false, sets: pairs.map(function (w) { return w.slice().sort(); }) };
+}
+function endRun() {
+  releaseHolds();
+  $("bSteps").innerHTML = G.steps.map(function (s) { return '<li class="ok">' + s.t + "</li>"; }).join("");
+  renderBTable(); renderScene();
+  var r = G.run, carry = G.carry ? G.carry + "<br>" : ""; G.carry = null;
+  if (r.rough) {
+    coach(BC, carry + "Rough titre ≈ <b>" + f2(r.finLvl - r.initLvl) + " cm³</b>. Now for the accurate titrations!", "good");
+    CTL.innerHTML = '<button class="btn teal" id="bGo" type="button" style="width:100%">Start accurate titration 1 ▸</button>';
+    $("bGo").addEventListener("click", function () { startRun(false); });
+    return;
+  }
+  var acc = accRuns(), vs = validSets(acc), html = "";
+  if (vs.conc && acc.length >= 2) {
+    var list = vs.sets[0].map(function (i) { return f2(G.runs[i].finLvl - G.runs[i].initLvl); });
+    coach(BC, carry + "🎯 <b>Concordant!</b> You have titres within 0.10 cm³ of each other (" + list.join(", ") + " cm³).", "good");
+    html = '<button class="btn teal" id="bTbl" type="button" style="width:100%">Fill in the table ▸</button>';
+    if (acc.length < 4) html += '<button class="btn ghost" id="bMore" type="button" style="width:100%;margin-top:8px">Do another titration</button>';
+  } else if (acc.length >= 4) {
+    coach(BC, carry + "That's four accurate titrations. Time to stop and use your closest results.", "");
+    html = '<button class="btn teal" id="bTbl" type="button" style="width:100%">Fill in the table ▸</button>';
+  } else {
+    coach(BC, carry + (acc.length < 2 ? "Now repeat to check your result." : "Not concordant yet: you need two accurate titres within 0.10 cm³ of each other.") + " Do another titration.", "");
+    html = '<button class="btn teal" id="bMore" type="button" style="width:100%">Next titration ▸</button>';
+  }
+  CTL.innerHTML = html;
+  if ($("bTbl")) $("bTbl").addEventListener("click", goTable);
+  if ($("bMore")) $("bMore").addEventListener("click", function () { startRun(false); });
+}
+
+/* ==================================================================
+   3. THE TITRATION TABLE
+================================================================== */
+function goTable() {
+  releaseHolds(); if (LOOP) { clearInterval(LOOP); LOOP = null; }
+  G.phase = "table"; G.tTries = 0; G.vs = validSets(accRuns());
+  $("sbTitle").textContent = "Step 3 · Titration table";
+  var A = G.acid, h = '<table class="ttable"><tr><th>Titration</th>' + G.runs.map(function (r) { return "<th>" + r.label + "</th>"; }).join("") + "</tr>";
+  h += '<tr><th class="rowh">Final burette reading / cm³</th>' + G.runs.map(function (r) { return "<td>" + r.fin + "</td>"; }).join("") + "</tr>";
+  h += '<tr><th class="rowh">Initial burette reading / cm³</th>' + G.runs.map(function (r) { return "<td>" + r.init + "</td>"; }).join("") + "</tr>";
+  h += '<tr><th class="rowh">Volume of ' + A.f + ' used / cm³</th>' + G.runs.map(function (r, i) { return '<td id="tv' + i + '"><input type="text" inputmode="decimal" autocomplete="off" data-v="' + i + '" aria-label="Volume used, titration ' + r.label + '"></td>'; }).join("") + "</tr>";
+  h += '<tr><th class="rowh">Use for average? (✓)</th>' + G.runs.map(function (r, i) { return '<td id="tk' + i + '"><input type="checkbox" data-k="' + i + '" aria-label="Use titration ' + r.label + '"></td>'; }).join("") + "</tr></table>";
+  $("tTable").innerHTML = h;
+  $("tAvgLbl").innerHTML = "Average volume of " + A.f + " used =";
+  $("tAvg").value = ""; $("tAvg").className = ""; $("tFb").textContent = ""; $("tFb").className = "fbk";
+  $("tCheck").hidden = false; $("tShow").hidden = true; $("tNext").hidden = true;
+  coach($("tCoach"), G.mode === "lab"
+    ? "Finish your table. Work out each <b>volume used</b> (final − initial), to 2 d.p. Tick the <b>concordant</b> titres (within 0.10 cm³ of each other), then find their <b>average</b>. Never use the rough titre!"
+    : "Complete the table and find the average titre. One check only!");
+  show("scrTable");
+}
+function tableAnswers() {
+  var vols = G.runs.map(function (r) { return r.finLvl - r.initLvl; });
+  var ticked = []; document.querySelectorAll("[data-k]").forEach(function (c) { if (c.checked) ticked.push(+c.getAttribute("data-k")); });
+  ticked.sort();
+  var setOk = G.vs.sets.some(function (w) { return w.length === ticked.length && w.every(function (x, i) { return x === ticked[i]; }); });
+  var useSet = setOk ? ticked : G.vs.sets[0];
+  var mean = useSet.reduce(function (s, i) { return s + vols[i] * 0.05; }, 0) / useSet.length;
+  return { vols: vols, ticked: ticked, setOk: setOk, useSet: useSet, mean: mean };
+}
+$("tCheck").addEventListener("click", function () {
+  var T = tableAnswers(), bad = { vol: 0, tick: 0, avg: 0 }, lab = G.mode === "lab";
+  G.runs.forEach(function (r, i) {
+    var inp = document.querySelector('[data-v="' + i + '"]'), s = inp.value.trim(), ok = /^\d{1,2}\.\d{2}$/.test(s) && Math.abs(parseFloat(s) - T.vols[i] * 0.05) < 0.001;
+    $("tv" + i).className = ok ? "ok" : "bad"; if (!ok) bad.vol++;
+  });
+  G.runs.forEach(function (r, i) { $("tk" + i).className = T.setOk ? "ok" : "bad"; });
+  if (!T.setOk) bad.tick = 1;
+  var as = $("tAvg").value.trim(), av = parseFloat(as), aok = /^\d{1,2}\.\d{2}$/.test(as) && Math.abs(av - T.mean) <= 0.0051;
+  $("tAvg").className = aok ? "ok" : "bad"; if (!aok) bad.avg = 1;
+  var msgs = [];
+  if (bad.vol) msgs.push("Volume used = final reading − initial reading, written to 2 d.p.");
+  if (bad.tick) msgs.push("Tick only the accurate titres that agree within 0.10 cm³ of each other (not the rough one, and not one you overshot).");
+  if (bad.avg) msgs.push("Average = add up the ticked titres and divide by how many you ticked. Give it to 2 d.p.");
+  var allOk = !bad.vol && !bad.tick && !bad.avg;
+  ["vol", "tick", "avg"].forEach(function (k) { checkpoint("Table: " + k, !bad[k] && G.tTries === 0); });
+  if (allOk) {
+    G.avg = Math.round(av * 100) / 100; G.avgSet = T.useSet;
+    $("tFb").textContent = "✓ Table complete! Average titre = " + as + " cm³."; $("tFb").className = "fbk ok";
+    coach($("tCoach"), "Great table! Every value is to 2 d.p., and you used only concordant results.", "good"); Sound.ok();
+    $("tCheck").hidden = true; $("tNext").hidden = false; return;
+  }
+  if (bad.vol) mistake("Table: volume used"); if (bad.tick) mistake("Table: choosing concordant titres"); if (bad.avg) mistake("Table: average titre");
+  G.tableErr = bad.vol + bad.tick + bad.avg;
+  $("tFb").innerHTML = msgs.join("<br>"); $("tFb").className = "fbk bad";
+  coach($("tCoach"), "Some cells need fixing (in red).", "warn");
+  G.tTries++;
+  if (!lab) { fillTable(T); return; }
+  if (G.tTries >= 2) $("tShow").hidden = false;
+});
+function fillTable(T) {
+  T = T || tableAnswers();
+  var set = T.setOk ? T.ticked : G.vs.sets[0];
+  G.runs.forEach(function (r, i) {
+    var inp = document.querySelector('[data-v="' + i + '"]'); inp.value = f2(T.vols[i]); inp.readOnly = true;
+    var c = document.querySelector('[data-k="' + i + '"]'); c.checked = set.indexOf(i) >= 0; c.disabled = true;
+  });
+  var mean = set.reduce(function (s, i) { return s + T.vols[i] * 0.05; }, 0) / set.length;
+  G.avg = Math.round(mean * 100 + 1e-9) / 100; G.avgSet = set;
+  $("tAvg").value = G.avg.toFixed(2); $("tAvg").readOnly = true;
+  $("tFb").innerHTML += "<br>Here are the answers. Average titre = <b>" + G.avg.toFixed(2) + " cm³</b>.";
+  $("tCheck").hidden = true; $("tShow").hidden = true; $("tNext").hidden = false;
+}
+$("tShow").addEventListener("click", function () { fillTable(); });
+$("tNext").addEventListener("click", function () { document.querySelectorAll("#tTable input").forEach(function (i) { i.readOnly = false; i.disabled = false; }); $("tAvg").readOnly = false; goCalc(0); });
+
+/* ==================================================================
+   4. CALCULATIONS
+================================================================== */
+var ROWS = {
+  a: function (C) { return { lbl: "Number of moles of " + C.acid.f + " used", unit: "mol" }; },
+  b: function () { return { lbl: "Number of moles of NaOH that reacted", unit: "mol" }; },
+  c: function () { return { lbl: "Concentration of NaOH", unit: "mol/dm³" }; },
+  d: function () { return { lbl: "Concentration of NaOH in g/dm³ (M<sub>r</sub> of NaOH = 40)", unit: "g/dm³" }; }
+};
+function goCalc(part) {
+  G.phase = "calc"; G.cpart = part;
+  var lab = G.mode === "lab", C;
+  if (part === 0) C = { acid: G.acid, V: G.avg, keys: lab ? ["a", "b", "c", "d"] : ["a", "b", "c"], title: lab ? "Part A · Your results" : "Find the concentration of the NaOH" };
+  else { G.pV = G.pV || rint(420, 580) * 0.05; C = { acid: ACIDS.H2SO4, V: G.pV, keys: ["a", "b", "c"], title: "Part B · Your lab partner's results" }; }
+  C.ans = {}; C.ans.a = C.acid.c * C.V / 1000; C.ans.b = C.ans.a * C.acid.ratio; C.ans.c = C.ans.b / 0.025; C.ans.d = C.ans.c * 40;
+  C.tries = {}; C.done = {}; G.C = C;
+  $("sbTitle").textContent = "Step 4 · Calculations";
+  $("cTitle").textContent = C.title;
+  $("cEq").innerHTML = C.acid.eq;
+  $("cGiven").innerHTML = "<div>Concentration of " + C.acid.name + " = <b>" + (C.acid.c === 0.1 ? "0.100" : "0.0500") + " mol/dm³</b></div><div>Average volume of " + C.acid.f + " used = <b>" + C.V.toFixed(2) + " cm³</b>" + (part === 0 ? " (from your table)" : "") + "</div><div>Volume of NaOH = <b>25.0 cm³</b></div>";
+  $("cRows").innerHTML = C.keys.map(function (k, i) {
+    var R = ROWS[k](C);
+    return '<div class="crow" id="cr' + k + '"><label for="ci' + k + '">(' + "abcd"[i] + ") " + R.lbl + '</label><span class="in"><input id="ci' + k + '" type="text" inputmode="decimal" autocomplete="off"> ' + R.unit + '</span><p class="msg" id="cm' + k + '"></p></div>';
+  }).join("");
+  $("cHint").hidden = true; $("cHintBtn").hidden = !lab; $("cCheck").hidden = false; $("cNext").hidden = true;
+  coach($("cCoach"), part === 0
+    ? (lab ? "Use your average titre to find the concentration of the sodium hydroxide. Give answers to 3 significant figures." : "Calculate! Answers to 3 s.f. One check only.")
+    : "Your lab partner did the same titration with <b>sulfuric acid</b>. Watch the mole ratio in the equation!");
+  show("scrCalc");
+  $("cRows").querySelectorAll("input").forEach(function (inp) { inp.addEventListener("keydown", function (e) { if (e.key === "Enter") $("cCheck").click(); }); });
+}
+$("cHintBtn").addEventListener("click", function () {
+  var C = G.C;
+  $("cHint").innerHTML = "<b>Moles</b> = concentration (mol/dm³) × volume (dm³). To change cm³ to dm³, divide by 1000.<br><b>Mole ratio</b>: " + C.acid.ratioTxt + ".<br><b>Concentration</b> = moles ÷ volume (dm³). 25.0 cm³ = 0.0250 dm³." + (C.keys.indexOf("d") >= 0 ? "<br><b>g/dm³</b> = mol/dm³ × M<sub>r</sub>." : "");
+  $("cHint").hidden = false;
+});
+function calcCheck(C) {
+  var v = {}, res = {};
+  C.keys.forEach(function (k) { v[k] = parseNum($("ci" + k).value); });
+  var ref = { a: C.ans.a };
+  ref.b = (isFinite(v.a) ? v.a : C.ans.a) * C.acid.ratio;
+  ref.c = (isFinite(v.b) ? v.b : C.ans.b) / 0.025;
+  ref.d = (isFinite(v.c) ? v.c : C.ans.c) * 40;
+  C.keys.forEach(function (k) {
+    var x = v[k], ok = near(x, ref[k]) || near(x, C.ans[k]), m = "";
+    if (!ok) {
+      if (!isFinite(x)) m = "Type a number (e.g. 0.00235 or 2.35 × 10^-3).";
+      else if (k === "a" && near(x, C.acid.c * C.V)) m = "Change cm³ to dm³ first: divide the volume by 1000.";
+      else if (k === "b" && C.acid.ratio === 2 && near(x, ref.b / 4)) m = "Check the mole ratio: " + C.acid.ratioTxt + ", so multiply (not divide) by 2.";
+      else if (k === "b" && C.acid.ratio === 2 && near(x, ref.b / 2)) m = "Look at the equation: " + C.acid.ratioTxt + ".";
+      else if (k === "c" && near(x, ref.c / 1000)) m = "Use the volume in dm³: 25.0 cm³ = 0.0250 dm³.";
+      else if (k === "c" && near(x, (isFinite(v.b) ? v.b : C.ans.b) * 0.025)) m = "Concentration = moles ÷ volume (not ×).";
+      else if (k === "d" && near(x, ref.d / 1600)) m = "To get g/dm³, multiply mol/dm³ by M<sub>r</sub> (40).";
+      else m = "Not quite. Check your working for this step.";
+    }
+    res[k] = { ok: ok, msg: ok ? (near(x, C.ans[k]) ? "✓ Correct" : "✓ Correct, using your answer above") : "✗ " + m };
+  });
+  return res;
+}
+$("cCheck").addEventListener("click", function () {
+  var C = G.C, res = calcCheck(C), lab = G.mode === "lab", all = true;
+  C.keys.forEach(function (k) {
+    if (C.done[k]) return;
+    var r = res[k], row = $("cr" + k);
+    checkpoint("Calc " + (G.cpart === 0 ? "A" : "B") + k, r.ok && !C.tries[k]);
+    if (r.ok) { C.done[k] = true; row.className = "crow ok"; $("cm" + k).innerHTML = r.msg; $("ci" + k).readOnly = true; return; }
+    C.tries[k] = (C.tries[k] || 0) + 1;
+    mistake("Calculation: " + ROWS[k](C).lbl.replace(/<[^>]+>/g, ""));
+    row.className = "crow bad"; $("cm" + k).innerHTML = r.msg;
+    if (!lab || C.tries[k] >= 2) { C.done[k] = "shown"; row.className = "crow shown"; $("cm" + k).innerHTML = r.msg + " Answer: <b>" + sf3(C.ans[k]) + "</b> " + ROWS[k](C).unit; $("ci" + k).readOnly = true; }
+    else all = false;
+  });
+  C.keys.forEach(function (k) { if (!C.done[k]) all = false; });
+  G.calcRes = G.calcRes || {}; G.calcRes[G.cpart] = res;
+  if (all) {
+    $("cCheck").hidden = true; $("cNext").hidden = false; $("cHintBtn").hidden = true;
+    var good = C.keys.every(function (k) { return C.done[k] === true; });
+    coach($("cCoach"), good ? "✓ All correct! The sodium hydroxide is <b>" + sf3(C.ans.c) + " mol/dm³</b>." : "Check the worked answers above, then carry on.", good ? "good" : "");
+    if (good) Sound.ok();
+  } else coach($("cCoach"), "Fix the rows in red and check again.", "warn");
+});
+$("cNext").addEventListener("click", function () {
+  if (G.mode === "lab" && G.cpart === 0) { G.ownConc = parseNum($("cic").value); goCalc(1); return; }
+  if (G.mode === "challenge") { G.ownConc = parseNum($("cic").value); if (G.course === "pure") goInd(); else finish(); return; }
+  if (G.course === "pure") goInd(); else finish();
+});
+
+/* ==================================================================
+   5. INDICATORS FROM TITRATION CURVES (Pure Chemistry)
+================================================================== */
+var CURVES = [
+  { id: "SS", acid: "hydrochloric acid", base: "sodium hydroxide", Ka: null, Kb: null, ans: "either",
+    why: "The steep part runs from about pH 3 to pH 11, so both colour-change ranges (3.1–4.4 and 8.3–10.0) fall inside it. Either indicator works." },
+  { id: "SW", acid: "hydrochloric acid", base: "aqueous ammonia", Ka: null, Kb: 1.8e-5, ans: "mo",
+    why: "The steep part runs from about pH 3 to pH 7. Only methyl orange (3.1–4.4) changes colour inside it." },
+  { id: "WS", acid: "ethanoic acid", base: "sodium hydroxide", Ka: 1.8e-5, Kb: null, ans: "pp",
+    why: "The steep part runs from about pH 7 to pH 11. Only phenolphthalein (8.3–10.0) changes colour inside it." },
+  { id: "WW", acid: "ethanoic acid", base: "aqueous ammonia", Ka: 1.8e-5, Kb: 1.8e-5, ans: "neither",
+    why: "There is no steep (vertical) part. The pH only rises gradually, so neither indicator would give a sharp end-point." }
+];
+var IOPTS = [{ id: "mo", t: "Methyl orange" }, { id: "pp", t: "Phenolphthalein" }, { id: "either", t: "Either indicator" }, { id: "neither", t: "Neither: no sharp end-point" }];
+function phAt(Ka, Kb, Vb) {
+  var Va = 25, V = Va + Vb, CA = 0.1 * Va / V, CB = 0.1 * Vb / V, Kw = 1e-14, lo = -14, hi = 1;
+  function f(H) { return H + (Kb ? CB * H / (H + Kw / Kb) : CB) - Kw / H - (Ka ? CA * Ka / (Ka + H) : CA); }
+  for (var i = 0; i < 60; i++) { var mid = (lo + hi) / 2; if (f(Math.pow(10, mid)) > 0) hi = mid; else lo = mid; }
+  return -(lo + hi) / 2;
+}
+function curveSVG(cv, bands) {
+  var X = function (v) { return 60 + v * 9.5; }, Y = function (p) { return 340 - p * 22.5; }, s = '<rect width="560" height="380" fill="#fff"/>';
+  if (bands) {
+    s += '<rect x="60" y="' + Y(4.4) + '" width="475" height="' + (Y(3.1) - Y(4.4)) + '" fill="#f59a2e" opacity=".35"/>';
+    s += '<rect x="60" y="' + Y(10) + '" width="475" height="' + (Y(8.3) - Y(10)) + '" fill="#ef74b6" opacity=".35"/>';
+  }
+  for (var p = 0; p <= 14; p += 2) s += '<line x1="60" y1="' + Y(p) + '" x2="535" y2="' + Y(p) + '" stroke="#e4ecec" stroke-width="1"/><text x="50" y="' + (Y(p) + 4) + '" text-anchor="end" font-size="12" font-weight="700" fill="#5a6b6b">' + p + "</text>";
+  for (var v = 0; v <= 50; v += 10) s += '<line x1="' + X(v) + '" y1="25" x2="' + X(v) + '" y2="340" stroke="#e4ecec" stroke-width="1"/><text x="' + X(v) + '" y="358" text-anchor="middle" font-size="12" font-weight="700" fill="#5a6b6b">' + v + "</text>";
+  s += '<line x1="60" y1="340" x2="535" y2="340" stroke="' + INK + '" stroke-width="2"/><line x1="60" y1="25" x2="60" y2="340" stroke="' + INK + '" stroke-width="2"/>';
+  s += '<text x="298" y="376" text-anchor="middle" font-size="12.5" font-weight="800" fill="' + INK + '">Volume of alkali added / cm³</text><text x="18" y="183" text-anchor="middle" font-size="12.5" font-weight="800" fill="' + INK + '" transform="rotate(-90 18 183)">pH</text>';
+  var pts = [];
+  for (var vb = 0.2; vb <= 50; vb += (vb > 23 && vb < 27 ? 0.02 : 0.25)) pts.push(X(vb).toFixed(1) + "," + Y(phAt(cv.Ka, cv.Kb, vb)).toFixed(1));
+  s += '<polyline points="' + pts.join(" ") + '" fill="none" stroke="' + TEAL + '" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round"/>';
+  if (bands) s += '<g font-size="12" font-weight="800" text-anchor="end" paint-order="stroke" stroke="#fff" stroke-width="4" stroke-linejoin="round"><text x="530" y="' + (Y(3.75) + 4) + '" fill="#9a4b00">methyl orange</text><text x="530" y="' + (Y(9.15) + 4) + '" fill="#8a1f5a">phenolphthalein</text></g>';
+  return s;
+}
+function uiSVG() {
+  var cols = ["#d7263d", "#e8493a", "#f26b38", "#f7943b", "#f9c23c", "#f3e33c", "#c6e03e", "#6cc24a", "#2fa65a", "#1f9a8a", "#2b7bbd", "#3557b0", "#4b3c9c", "#5e2c86", "#6d2077"], s = '<rect width="560" height="380" fill="#fff"/><text x="280" y="120" text-anchor="middle" font-size="16" font-weight="800" fill="' + INK + '">Universal indicator</text>';
+  cols.forEach(function (c, i) { s += '<rect x="' + (35 + i * 33) + '" y="150" width="33" height="60" fill="' + c + '"/><text x="' + (51.5 + i * 33) + '" y="232" text-anchor="middle" font-size="12" font-weight="700" fill="' + INK + '">' + i + "</text>"; });
+  return s + '<rect x="35" y="150" width="495" height="60" fill="none" stroke="' + INK + '" stroke-width="2.5"/><text x="280" y="262" text-anchor="middle" font-size="12.5" font-weight="800" fill="' + INK + '">pH</text>';
+}
+function goInd() {
+  G.phase = "ind";
+  var qs = G.mode === "lab" ? shuffle(CURVES).map(function (c) { return { cv: c }; }).concat([{ ui: true }]) : [{ cv: pick(CURVES) }];
+  G.iq = qs; G.ii = 0; G.indScore = 0;
+  $("sbTitle").textContent = G.mode === "lab" ? "Step 5 · Choosing an indicator" : "Bonus · Choose the indicator";
+  show("scrInd"); askInd();
+}
+function askInd() {
+  var q = G.iq[G.ii], lab = G.mode === "lab";
+  $("iBar").style.width = (G.ii / G.iq.length * 100) + "%";
+  $("iWhy").hidden = true; $("iNext").hidden = true; G.indWrong = false;
+  if (q.ui) {
+    $("curve").innerHTML = uiSVG();
+    $("iQ").innerHTML = "Why isn't universal indicator used in titrations?";
+    q.opts = shuffle([{ id: "ok", t: "It changes colour gradually over a wide pH range, so there's no sharp end-point" }, { id: "x1", t: "It only works with strong acids" }, { id: "x2", t: "It reacts with the alkali" }, { id: "x3", t: "It is colourless in neutral solutions" }]);
+    q.ans = "ok"; q.why = "Universal indicator shows many colours as the pH changes, so you can't tell exactly which drop reached the end-point.";
+  } else {
+    $("curve").innerHTML = curveSVG(q.cv, false);
+    $("iQ").innerHTML = "25.0 cm³ of 0.100 mol/dm³ <b>" + q.cv.acid + "</b> is titrated with 0.100 mol/dm³ <b>" + q.cv.base + "</b>. Use the curve: which indicator should you use?";
+    q.opts = IOPTS; q.ans = q.cv.ans; q.why = q.cv.why;
+  }
+  coach($("iCoach"), lab ? (q.ui ? "Last one!" : "Find the <b>steep (vertical) part</b> of the curve. A good indicator changes colour completely inside it.") : "Bonus question: one try!");
+  $("iOpts").innerHTML = q.opts.map(function (o) { return '<button class="opt" type="button" data-o="' + o.id + '">' + o.t + "</button>"; }).join("");
+  $("iOpts").querySelectorAll(".opt").forEach(function (b) {
+    b.addEventListener("click", function () {
+      if (b.classList.contains("no") || $("iOpts").querySelector(".yes") || G.indDone) return;
+      var right = b.getAttribute("data-o") === q.ans, key = "Indicator: " + (q.ui ? "universal" : q.cv.id);
+      if (right || !lab) {
+        checkpoint(key, right && !G.indWrong);
+        if (right && !G.indWrong) G.indScore++;
+        if (!right) { mistake(key); b.classList.add("no"); $("iOpts").querySelector('[data-o="' + q.ans + '"]').classList.add("yes"); }
+        else { b.classList.add("yes"); Sound.ok(); }
+        if (!q.ui) $("curve").innerHTML = curveSVG(q.cv, true);
+        $("iWhy").innerHTML = (right ? "✓ " : "✗ ") + q.why; $("iWhy").hidden = false;
+        coach($("iCoach"), right ? "Correct!" : "Not this time.", right ? "good" : "warn");
+        $("iNext").textContent = G.ii === G.iq.length - 1 ? "Finish ▸" : "Next ▸"; $("iNext").hidden = false;
+        G.indDone = true;
+      } else {
+        G.indWrong = true; b.classList.add("no"); mistake(key);
+        coach($("iCoach"), "Not quite. Look at where the curve is steepest, and compare it with each indicator's pH range.", "warn");
+      }
+    });
+  });
+  G.indDone = false;
+}
+$("iNext").addEventListener("click", function () { G.ii++; if (G.ii >= G.iq.length) { $("iBar").style.width = "100%"; finish(); } else askInd(); });
+
+/* ==================================================================
+   RESULTS, BADGE, SHEET
+================================================================== */
+function finish() {
+  stopLoop(); releaseHolds();
+  var secs = (Date.now() - G.t0) / 1000, lab = G.mode === "lab", st = loadStore(), id = pid(G.profile) + "|" + G.course;
+  var ideal = G.k1 * 0.05, trueC = G.cNaOH;
+  var keys = Object.keys(G.checks), first = keys.filter(function (k) { return G.checks[k]; }).length;
+  var wrong = Object.keys(G.mlog).map(function (k) { return k + (G.mlog[k] > 1 ? " ×" + G.mlog[k] : ""); });
+  var stats = [], note = "";
+  if (lab) {
+    st.badges = st.badges || {}; if (!st.badges[id]) st.badges[id] = { t: Date.now() };
+    var saved = saveStore(st);
+    $("resTitle").textContent = "Pre-Lab complete! 🎉";
+    $("resBadge").innerHTML = '<div class="badges">' + badgeHTML(G.course, st.badges[id], G.profile, st.best && st.best[id]) + "</div>" +
+      (saved ? '<p class="howto" style="margin-top:10px">Your badge is saved on this device and shows on the start screen. Show it to your teacher before the practical. <b>Challenge mode is now unlocked!</b></p>'
+             : '<p class="err" style="margin-top:10px">This browser could not save your badge (private browsing?). Show this screen to your teacher now.</p>');
+    stats = [[fmtTime(secs), "Time taken"], [G.mist, "Mistakes"], [Math.round(first / Math.max(1, keys.length) * 100) + "%", "Right first time"], [G.avg.toFixed(2) + " cm³", "Your average titre (true end-point " + ideal.toFixed(2) + ")"]];
+    $("btnChal").hidden = false;
+  } else {
+    var P = challengeScore(secs);
+    G.points = P.total;
+    st.best = st.best || {};
+    var prev = st.best[id], isBest = !prev || P.total > prev.score || (P.total === prev.score && secs < prev.secs);
+    if (isBest) st.best[id] = { score: P.total, secs: Math.round(secs) };
+    saveStore(st);
+    $("resTitle").textContent = (isBest ? "New best! " : "Challenge complete! ") + P.total + " pts 🏁";
+    $("resBadge").innerHTML = "";
+    stats = [[P.total + " / " + P.max, "Total score"], [fmtTime(secs), "Time taken"], [G.avg.toFixed(2) + " cm³", "Your titre (true " + ideal.toFixed(2) + ")"], [sf3(trueC) + "", "Actual NaOH conc. (mol/dm³)"]];
+    note = '<table class="ttable" style="max-width:460px"><tr><th>Score</th><th>Points</th></tr>' + P.rows.map(function (r) { return '<tr><td style="text-align:left">' + r[0] + "</td><td>" + r[1] + " / " + r[2] + "</td></tr>"; }).join("") + "</table>";
+    $("btnChal").hidden = true;
+  }
+  $("stats").innerHTML = stats.map(function (s) { return '<div class="stat"><b>' + s[0] + "</b><span>" + s[1] + "</span></div>"; }).join("");
+  $("resNote").innerHTML = note + (wrong.length ? '<p class="small-h" style="margin-top:12px">Things to practise</p><ul class="mlist">' + wrong.map(function (w) { return "<li>" + esc(w) + "</li>"; }).join("") + "</ul>" : '<p class="fbk ok">No mistakes. Amazing technique!</p>');
+  show("scrResults"); Music.stop();
+  Sound.win(); Confetti.go();
+  var courseTxt = G.course === "pure" ? "Pure Chem" : "Combined Sci";
+  send({ course: SHEET_TAB, chapter: (lab ? "Pre-Lab · " : "Challenge · ") + courseTxt, name: G.profile.name, cls: G.profile.cls, reg: G.profile.reg,
+    score: lab ? first : G.points, total: lab ? keys.length : challengeScore(secs).max, wrong: wrong.join("; ") || "None", time: Math.round(secs), points: lab ? 0 : G.points,
+    summary: "Acid: " + G.acid.key + " | Indicator: " + (G.ind ? IND[G.ind].name : "–") + " | Avg titre " + G.avg.toFixed(2) + " (end-point " + ideal.toFixed(2) + ") | Titrations: " + G.runs.length +
+      " | NaOH found " + (isFinite(G.ownConc) ? sf3(G.ownConc) : "–") + " (actual " + sf3(trueC) + ") | Mistakes: " + G.mist });
+}
+function challengeScore(secs) {
+  var ideal = G.k1 * 0.05, d = Math.abs(G.avg - ideal), rows = [];
+  var tech = Math.max(0, 300 - 25 * (G.mbench || 0));
+  rows.push(["Technique (−25 per mistake at the bench)", tech, 300]);
+  var acc = Math.round(300 * Math.max(0, 1 - d / 0.5)); rows.push(["Accuracy of your average titre", acc, 300]);
+  var tb = Math.max(0, 200 - 60 * (G.tableErr || 0)); rows.push(["Titration table", tb, 200]);
+  var cr = (G.calcRes && G.calcRes[0]) || {}, cs = (cr.a && cr.a.ok ? 50 : 0) + (cr.b && cr.b.ok ? 50 : 0) + (cr.c && cr.c.ok ? 100 : 0); rows.push(["Calculation", cs, 200]);
+  var max = 1200;
+  if (G.course === "pure") { var ib = G.indScore ? 100 : 0; rows.push(["Bonus: indicator", ib, 100]); max += 100; }
+  var tbonus = Math.round(Math.max(0, 200 - Math.max(0, secs - 300) / 1.5)); rows.push(["Speed bonus (full marks under 5 min)", tbonus, 200]);
+  return { rows: rows, total: rows.reduce(function (s, r) { return s + r[1]; }, 0), max: max };
+}
+function send(payload) {
+  G.payload = payload;
+  var box = $("send"), msg = $("sendMsg"), btn = $("btnResend");
+  box.className = "send"; btn.hidden = true; msg.textContent = "Sending your results to Ms Khoo…";
+  if (!SUBMIT_URL) { msg.textContent = "Results not sent (no Google Sheet link set up)."; return; }
+  fetch(SUBMIT_URL, { method: "POST", mode: "no-cors", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(payload) })
+    .then(function () { msg.textContent = "✓ Sent! Ms Khoo has your results."; })
+    .catch(function () { box.className = "send err"; msg.textContent = "Couldn't send. Check your internet, then tap Try again."; btn.hidden = false; });
+}
+$("btnResend").addEventListener("click", function () { if (G && G.payload) send(G.payload); });
+$("btnAgain").addEventListener("click", function () {
+  Confetti.stop(); var c = G.course, m = G.mode, p = G.profile;
+  if (m === "lab") { newGame(c, "lab", p); startApparatus(); } else startChallenge(c, p);
+});
+$("btnChal").addEventListener("click", function () { Confetti.stop(); startChallenge(G.course, G.profile); });
+$("btnBack").addEventListener("click", goStart);
+
+/*DBG*/window.__TL = function () { return { G: G, S: S }; };/*DBG*/
+/* ==================================================================
+   CHALLENGE MODE
+================================================================== */
+function startChallenge(course, profile) {
+  newGame(course, "challenge", profile);
+  G.benchMist = 0;
+  Music.start();
+  goBrief();
+}
+
+})();
+</script>
+</body>
+</html>
