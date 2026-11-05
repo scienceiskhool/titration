@@ -747,7 +747,7 @@ function stopLoop() { if (LOOP) { clearInterval(LOOP); LOOP = null; } if (TIMER)
 function goStart() { stopLoop(); Music.stop(); Confetti.stop(); G = null; renderStart(); show("scrStart"); }
 $("btnHome").addEventListener("click", goStart);
 document.querySelectorAll("[data-course]").forEach(function (b) {
-  b.addEventListener("click", function () { var p = requireProfile(); if (!p) return; newGame(b.getAttribute("data-course"), "lab", p); startApparatus(); });
+  b.addEventListener("click", function () { var p = requireProfile(); if (!p) return; newGame(b.getAttribute("data-course"), "lab", p); goBrief(); });
 });
 
 /* ==================================================================
@@ -792,7 +792,7 @@ function onApp(btn) {
 }
 $("appNext").addEventListener("click", function () {
   G.appIdx++;
-  if (G.appIdx >= G.appOrder.length) { $("appBar").style.width = "100%"; goBrief(); } else askApp();
+  if (G.appIdx >= G.appOrder.length) { $("appBar").style.width = "100%"; startBench(); } else askApp();
 });
 
 /* ==================================================================
@@ -802,7 +802,7 @@ function concTxt(A) { return A.c === 0.1 ? "0.100" : "0.0500"; }
 function goBrief() {
   var A = G.acid, lab = G.mode === "lab";
   $("sbTitle").textContent = lab ? "Before you start" : "Challenge briefing";
-  coach($("brCoach"), lab ? "Read this first. Knowing what goes where helps you make the right choices at the bench." : "A mystery sample! Note which acid you're using this time.");
+  coach($("brCoach"), lab ? "Read this first. Knowing what goes where will help you make the right choices in the lab." : "A mystery sample! Note which acid you're using this time.");
   $("brAim").innerHTML = "<b>Aim</b> To find the concentration of a sodium hydroxide solution by titrating it with <b>" + concTxt(A) + " mol/dm³ " + A.name + "</b>.";
   $("brEq").innerHTML = A.eq;
   $("brBur").innerHTML = '<svg viewBox="-4 -4 52 404" aria-hidden="true">' + artBurette({ lvl: 30 }) + "</svg><div><h3>In the burette</h3><p>" + A.name.charAt(0).toUpperCase() + A.name.slice(1) + ", " + A.f + "(aq)<br>Concentration known: <b>" + concTxt(A) + " mol/dm³</b></p></div>";
@@ -813,9 +813,10 @@ function goBrief() {
     "Do a rough titration, then repeat until you have <b>concordant</b> results (within 0.10 cm³).",
     "Use the average volume of acid to calculate the concentration of the sodium hydroxide."].map(function (t) { return "<li>" + t + "</li>"; }).join("");
   $("bAim").innerHTML = "<b>Aim:</b> find the concentration of NaOH(aq) (25.0 cm³ in the flask) using " + concTxt(A) + " mol/dm³ " + A.f + "(aq) in the burette.";
+  $("brGo").textContent = lab ? "Let's go: meet the apparatus ▸" : "Start the challenge ▸";
   show("scrBrief");
 }
-$("brGo").addEventListener("click", startBench);
+$("brGo").addEventListener("click", function () { if (G.mode === "lab") startApparatus(); else startBench(); });
 
 /* ==================================================================
    2. THE BENCH
@@ -1735,12 +1736,11 @@ function send(payload) {
 $("btnResend").addEventListener("click", function () { if (G && G.payload) send(G.payload); });
 $("btnAgain").addEventListener("click", function () {
   Confetti.stop(); var c = G.course, m = G.mode, p = G.profile;
-  if (m === "lab") { newGame(c, "lab", p); startApparatus(); } else startChallenge(c, p);
+  if (m === "lab") { newGame(c, "lab", p); goBrief(); } else startChallenge(c, p);
 });
 $("btnChal").addEventListener("click", function () { Confetti.stop(); startChallenge(G.course, G.profile); });
 $("btnBack").addEventListener("click", goStart);
 
-/*DBG*/window.__TL = function () { return { G: G, S: S }; };/*DBG*/
 /* ==================================================================
    CHALLENGE MODE
 ================================================================== */
